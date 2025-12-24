@@ -1,0 +1,641 @@
+openapi: 3.0.0
+info:
+  title: Waste Management API
+  description: API for managing dropping points, prices, pickup orders, and user roles
+  version: 1.0.0
+  contact:
+    name: API for Country Material Limited
+    email: development@countrymaterial.com
+
+servers:
+  - url: http://localhost:5001
+    description: Development server
+  - url: https://api.countrymaterial.com
+    description: Production server
+
+paths:
+  /api/dropping-point:
+    post:
+      summary: Create a new dropping point
+      tags:
+        - Dropping Points
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - location_name
+                - created_by
+              properties:
+                location_name:
+                  type: string
+                  description: Name of the location
+                  example: "Central Waste Point"
+                address:
+                  type: string
+                  description: Address of the dropping point
+                  example: "123 Main Street, City"
+                created_by:
+                  type: string
+                  description: ID of the user creating the dropping point
+                  example: "user-123"
+      responses:
+        '201':
+          description: Dropping point created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Dropping point created successfully"
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Location name and created_by are required"
+        '500':
+          description: Internal server error
+
+  /api/dropping-points:
+    get:
+      summary: Get all dropping points
+      tags:
+        - Dropping Points
+      responses:
+        '200':
+          description: Dropping points fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Dropping points fetched successfully"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        location_name:
+                          type: string
+                          example: "Central Waste Point"
+                        address:
+                          type: string
+                          example: "123 Main Street"
+                        created_by:
+                          type: string
+                          example: "user-123"
+                        created_by_name:
+                          type: string
+                          example: "John Doe"
+                        created_at:
+                          type: string
+                          format: date-time
+        '500':
+          description: Internal server error
+
+  /api/user-roles:
+    post:
+      summary: Assign a role to a user
+      tags:
+        - User Roles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - role
+              properties:
+                user_id:
+                  type: string
+                  description: ID of the user
+                  example: "user-123"
+                role:
+                  type: string
+                  enum: [vendor, manager, admin]
+                  description: Role to assign to the user
+                  example: "vendor"
+      responses:
+        '201':
+          description: User role created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User role created successfully"
+        '400':
+          description: Bad request - invalid role or missing fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid role. Must be: vendor, manager, or admin"
+        '500':
+          description: Internal server error
+
+  /api/users-with-roles/{user_id}:
+    get:
+      summary: Get user details with their roles
+      tags:
+        - User Roles
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the user
+      responses:
+        '200':
+          description: User data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user_id:
+                        type: string
+                        example: "user-123"
+                      name:
+                        type: string
+                        example: "John Doe"
+                      email:
+                        type: string
+                        example: "john@example.com"
+                      phone_number:
+                        type: string
+                        example: "+1234567890"
+                      roles:
+                        type: array
+                        items:
+                          type: string
+                        example: ["vendor", "manager"]
+        '400':
+          description: Bad request - user_id is required
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+
+  /api/daily-price:
+    post:
+      summary: Create daily price for a dropping point
+      tags:
+        - Daily Prices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - dropping_point_id
+                - category
+                - price
+                - created_by
+              properties:
+                dropping_point_id:
+                  type: integer
+                  description: ID of the dropping point
+                  example: 1
+                category:
+                  type: string
+                  description: Waste category
+                  example: "heavy"
+                price:
+                  type: number
+                  format: float
+                  description: Price for the category
+                  example: 150.50
+                created_by:
+                  type: string
+                  description: ID of the user creating the price
+                  example: "user-123"
+      responses:
+        '201':
+          description: Daily price created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Daily price created successfully"
+        '400':
+          description: Bad request - missing required fields
+        '500':
+          description: Internal server error
+
+  /api/daily-prices/{dropping_point_id}:
+    get:
+      summary: Get today's prices for a specific dropping point
+      tags:
+        - Daily Prices
+      parameters:
+        - name: dropping_point_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the dropping point
+      responses:
+        '200':
+          description: Prices retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        dropping_point_id:
+                          type: integer
+                          example: 1
+                        category:
+                          type: string
+                          example: "heavy"
+                        price:
+                          type: number
+                          format: float
+                          example: 150.50
+                        location_name:
+                          type: string
+                          example: "Central Waste Point"
+                        created_by_name:
+                          type: string
+                          example: "John Doe"
+                        effective_date:
+                          type: string
+                          format: date
+                          example: "2024-01-15"
+        '400':
+          description: Bad request - dropping_point_id is required
+        '500':
+          description: Internal server error
+
+  /api/today-prices:
+    get:
+      summary: Get today's prices for all dropping points
+      tags:
+        - Daily Prices
+      responses:
+        '200':
+          description: Today's prices retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        dropping_point_id:
+                          type: integer
+                          example: 1
+                        category:
+                          type: string
+                          example: "heavy"
+                        price:
+                          type: number
+                          format: float
+                          example: 150.50
+                        location_name:
+                          type: string
+                          example: "Central Waste Point"
+                        created_by_name:
+                          type: string
+                          example: "John Doe"
+        '500':
+          description: Internal server error
+
+  /api/pickup-order:
+    post:
+      summary: Create a new pickup order
+      tags:
+        - Pickup Orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - vendor_id
+                - dropping_point_id
+                - category
+                - price
+                - phone_number
+                - quantity
+              properties:
+                vendor_id:
+                  type: string
+                  description: ID of the vendor
+                  example: "vendor-123"
+                dropping_point_id:
+                  type: integer
+                  description: ID of the dropping point
+                  example: 1
+                category:
+                  type: string
+                  description: Waste category
+                  example: "heavy"
+                price:
+                  type: number
+                  format: float
+                  description: Price per unit
+                  example: 150.50
+                phone_number:
+                  type: string
+                  description: Contact phone number
+                  example: "+1234567890"
+                quantity:
+                  type: number
+                  format: float
+                  description: Quantity of waste
+                  example: 10.5
+                comment:
+                  type: string
+                  description: Additional comments
+                  example: "Fragile items"
+                image:
+                  type: string
+                  description: Base64 encoded image or image URL
+                  example: "data:image/jpeg;base64,..."
+      responses:
+        '201':
+          description: Pickup order created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Pickup order created successfully"
+        '400':
+          description: Bad request - missing required fields
+        '500':
+          description: Internal server error
+
+  /api/pickup-orders/{vendor_id}:
+    get:
+      summary: Get pickup orders for a specific vendor
+      tags:
+        - Pickup Orders
+      parameters:
+        - name: vendor_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the vendor
+      responses:
+        '200':
+          description: Pickup orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        vendor_id:
+                          type: string
+                          example: "vendor-123"
+                        dropping_point_id:
+                          type: integer
+                          example: 1
+                        category:
+                          type: string
+                          example: "heavy"
+                        price:
+                          type: number
+                          format: float
+                          example: 150.50
+                        quantity:
+                          type: number
+                          format: float
+                          example: 10.5
+                        status:
+                          type: string
+                          example: "pending"
+                        location_name:
+                          type: string
+                          example: "Central Waste Point"
+                        vendor_name:
+                          type: string
+                          example: "John Doe"
+        '400':
+          description: Bad request - vendor_id is required
+        '500':
+          description: Internal server error
+
+  /api/pickup-orders:
+    get:
+      summary: Get all pickup orders (for managers/admins)
+      tags:
+        - Pickup Orders
+      responses:
+        '200':
+          description: Pickup orders fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Pickup orders fetched successfully"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        vendor_id:
+                          type: string
+                          example: "vendor-123"
+                        dropping_point_id:
+                          type: integer
+                          example: 1
+                        category:
+                          type: string
+                          example: "heavy"
+                        price:
+                          type: number
+                          format: float
+                          example: 150.50
+                        quantity:
+                          type: number
+                          format: float
+                          example: 10.5
+                        status:
+                          type: string
+                          example: "pending"
+                        location_name:
+                          type: string
+                          example: "Central Waste Point"
+                        vendor_name:
+                          type: string
+                          example: "John Doe"
+                        assigned_manager_name:
+                          type: string
+                          example: "Manager Name"
+        '500':
+          description: Internal server error
+
+  /api/pickup-order/{id}/status:
+    put:
+      summary: Update pickup order status (for managers)
+      tags:
+        - Pickup Orders
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the pickup order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  description: New status of the order
+                  example: "in_progress"
+                assigned_to:
+                  type: string
+                  description: ID of the manager assigned to the order
+                  example: "manager-123"
+      responses:
+        '200':
+          description: Pickup order updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Pickup order updated successfully"
+                  data:
+                    type: object
+        '400':
+          description: Bad request - status is required
+        '404':
+          description: Pickup order not found
+        '500':
+          description: Internal server error
+
+  /api/order-completion:
+    post:
+      summary: Record order completion
+      tags:
+        - Pickup Orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - order_id
+                - completed_by
+              properties:
+                order_id:
+                  type: integer
+                  description: ID of the completed order
+                  example: 1
+                completed_by:
+                  type: string
+                  description: ID of the user who completed the order
+                  example: "manager-123"
+                completion_notes:
+                  type: string
+                  description: Notes about the completion
+                  example: "Order completed successfully"
+      responses:
+        '201':
+          description: Order completion recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Order completion recorded successfully"
+        '400':
+          description: Bad request - missing required fields
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+          example: "Internal server error"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

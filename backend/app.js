@@ -32,7 +32,15 @@ await initDB();
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:8081', 'exp://localhost:8081', 'http://192.168.1.11:8081', 'exp://192.168.1.11:8081'], // Allow both web and expo go
+  origin: [
+    'http://localhost:8081',
+    'exp://localhost:8081',
+    'http://192.168.1.11:8081',
+    'exp://192.168.1.11:8081',
+    'http://localhost:8080',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
   credentials: true
 }));
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));

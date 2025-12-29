@@ -129,7 +129,7 @@ export default function Profile() {
     };
 
     const handleViewPickups = () => {
-        router.push('');
+        router.push('/');
     };
 
     const styles = {

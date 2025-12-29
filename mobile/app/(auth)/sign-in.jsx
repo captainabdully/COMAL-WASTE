@@ -17,6 +17,12 @@ export default function SignIn() {
 
   const onLogin = async () => {
     setError("");
+
+    if (!email || !password) {
+      setError("Email and password are required");
+      return;
+    }
+
     try {
       console.log("Attempting login...");
       const res = await loginUser(email, password);
@@ -25,7 +31,6 @@ export default function SignIn() {
       if (res.token) {
         console.log("Saving token...");
         await SecureStore.setItemAsync("authToken", res.token);
-        await SecureStore.setItemAsync("userId", String(res.user?.user_id));
         await SecureStore.setItemAsync("userId", String(res.user?.user_id));
         await SecureStore.setItemAsync("userEmail", res.user?.email || email);
         await SecureStore.setItemAsync("userName", res.user?.name || "User");
@@ -49,7 +54,7 @@ export default function SignIn() {
         setError("Invalid credentials");
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.log("Login error:", err);
       setError(err.message || "Login failed");
     }
   };
@@ -58,7 +63,7 @@ export default function SignIn() {
     <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View style={styles.container}>
         <Image source={require("../../assets/images/logo 1.png")} style={styles.illustration} />
-        <Text style={styles.title}>Welcome Back</Text>
+        <Text style={styles.title}>Karibu Country</Text>
 
         {error !== "" && (
           <View style={styles.errorBox}>

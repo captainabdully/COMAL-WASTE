@@ -451,7 +451,7 @@ export default function PickupRequests() {
           }}
         >
           <Ionicons name="location" size={20} color="#FFF" style={{ marginRight: 10 }} />
-          <Text style={{ color: '#FFF', fontWeight: '600' }}>See Dropping Points</Text>
+          <Text style={{ color: '#FFF', fontWeight: '600' }}>Our dropping points</Text>
         </TouchableOpacity>
       </View>
 

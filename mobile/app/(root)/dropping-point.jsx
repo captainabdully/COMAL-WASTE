@@ -7,102 +7,91 @@ import {
   Alert,
   Image,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 
-const API_URL = 'http://localhost:5001';
+const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://localhost:5001';
 
-// Dropping points data
-const DROPPING_POINTS = [
-  {
-    id: 1,
-    name: 'City Center Collection',
-    address: '123 Main Street, Downtown',
-   
-    categories: [
-      { id: 'heavy', name: 'Heavy', price: 'Tsh50/kg', color: '#FF6B6B' },
-      { id: 'mixer', name: 'Mixer', price: 'Tsh40/kg', color: '#4ECDC4' },
-      { id: 'light', name: 'Light', price: 'Tsh30/kg', color: '#FFD166' },
-      { id: 'cast', name: 'Cast', price: 'Tsh60/kg', color: '#06D6A0' },
-    ]
-  },
-  {
-    id: 2,
-    name: 'Green Valley Station',
-    address: '456 Green Valley Road',
-    
-    categories: [
-      { id: 'heavy', name: 'Heavy', price: 'Tsh55/kg', color: '#FF6B6B' },
-      { id: 'mixer', name: 'Mixer', price: 'Tsh45/kg', color: '#4ECDC4' },
-      { id: 'light', name: 'Light', price: 'Tsh35/kg', color: '#FFD166' },
-      { id: 'cast', name: 'Cast', price: 'Tsh65/kg', color: '#06D6A0' },
-    ]
-  },
-  {
-    id: 3,
-    name: 'Eco Park Depot',
-    address: 'Eco Park, Sector 15',
-  
-    categories: [
-      { id: 'heavy', name: 'Heavy', price: 'Tsh48/kg', color: '#FF6B6B' },
-      { id: 'mixer', name: 'Mixer', price: 'Tsh38/kg', color: '#4ECDC4' },
-      { id: 'light', name: 'Light', price: 'Tsh28/kg', color: '#FFD166' },
-      { id: 'cast', name: 'Cast', price: 'Tsh58/kg', color: '#06D6A0' },
-    ]
-  },
-  {
-    id: 4,
-    name: 'Industrial Zone Center',
-    address: 'Industrial Area, Phase 2',
-    
-    categories: [
-      { id: 'heavy', name: 'Heavy', price: 'Tsh45/kg', color: '#FF6B6B' },
-      { id: 'mixer', name: 'Mixer', price: 'Tsh35/kg', color: '#4ECDC4' },
-      { id: 'light', name: 'Light', price: 'Tsh25/kg', color: '#FFD166' },
-      { id: 'cast', name: 'Cast', price: 'Tsh55/kg', color: '#06D6A0' },
-    ]
-  },
-  {
-    id: 5,
-    name: 'Residential Hub',
-    address: '789 Residential Complex',
-    
-    categories: [
-      { id: 'heavy', name: 'Heavy', price: 'Tsh52/kg', color: '#FF6B6B' },
-      { id: 'mixer', name: 'Mixer', price: 'Tsh42/kg', color: '#4ECDC4' },
-      { id: 'light', name: 'Light', price: 'Tsh32/kg', color: '#FFD166' },
-      { id: 'cast', name: 'Cast', price: 'Tsh62/kg', color: '#06D6A0' },
-    ]
-  },
-  {
-    id: 6,
-    name: 'Market Area Station',
-    address: 'Central Market, 1st Floor',
-    
-    categories: [
-      { id: 'heavy', name: 'Heavy', price: 'Tsh53/kg', color: '#FF6B6B' },
-      { id: 'mixer', name: 'Mixer', price: 'Tsh43/kg', color: '#4ECDC4' },
-      { id: 'light', name: 'Light', price: 'Tsh33/kg', color: '#FFD166' },
-      { id: 'cast', name: 'Cast', price: 'Tsh63/kg', color: '#06D6A0' },
-    ]
-  },
-];
+const CATEGORY_COLORS = {
+  heavy: '#FF6B6B',
+  mixer: '#4ECDC4',
+  light: '#FFD166',
+  cast: '#06D6A0',
+  default: '#CCCCCC',
+};
 
 export default function DroppingPoints() {
   const router = useRouter();
   const [userEmail, setUserEmail] = useState('');
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [droppingPoints, setDroppingPoints] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadUser();
+    fetchData();
   }, []);
 
   const loadUser = async () => {
     const email = await SecureStore.getItemAsync('userEmail');
     if (email) setUserEmail(email.split('@')[0]);
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const token = await SecureStore.getItemAsync("authToken");
+
+      // 1. Fetch Dropping Points
+      const pointsRes = await fetch(`${API_URL}/api/dropping-point`, {
+        // headers: { 'Authorization': `Bearer ${token}` } // Assuming public or token optional for view
+      });
+      const pointsData = await pointsRes.json();
+      const points = pointsData.data || [];
+
+      // 2. Fetch Today's Prices
+      const pricesRes = await fetch(`${API_URL}/api/daily-price/today`, {
+        // headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const pricesJson = await pricesRes.json();
+      const prices = pricesJson.data || [];
+
+      // 3. Merge Data
+      // Create a map of droppingPointId -> categories array
+      const pricesMap = {};
+      prices.forEach(p => {
+        if (!pricesMap[p.dropping_point_id]) {
+          pricesMap[p.dropping_point_id] = [];
+        }
+        pricesMap[p.dropping_point_id].push({
+          id: p.category, // using category name as id for UI logic
+          name: p.category.charAt(0).toUpperCase() + p.category.slice(1),
+          price: `Tsh${p.price}/kg`,
+          color: CATEGORY_COLORS[p.category] || CATEGORY_COLORS.default
+        });
+      });
+
+      // Attach categories to points
+      const mergedPoints = points.map(point => ({
+        id: point.id,
+        name: point.location_name,
+        address: point.address,
+        categories: pricesMap[point.id] || []
+      }));
+
+      setDroppingPoints(mergedPoints);
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      Alert.alert("Error", "Failed to load dropping points");
+    } finally {
+      setLoading(false);
+    }
   };
 
 
@@ -140,9 +129,9 @@ export default function DroppingPoints() {
       <View style={styles.pointHeader}>
         <View style={styles.pointInfo}>
           <Text style={styles.pointName}>{item.name}</Text>
-          
+
         </View>
-      
+
       </View>
 
       <Text style={styles.pointAddress}>{item.address}</Text>
@@ -161,7 +150,7 @@ export default function DroppingPoints() {
           >
             <Text style={styles.categoryName}>{category.name}</Text>
             <Text style={styles.categoryPrice}>{category.price}</Text>
-            
+
           </TouchableOpacity>
         ))}
       </View>
@@ -364,13 +353,22 @@ export default function DroppingPoints() {
       <View style={styles.mainContent}>
         <Text style={styles.pageTitle}>Daily prices</Text>
 
-        <FlatList
-          data={DROPPING_POINTS}
-          renderItem={renderDroppingPoint}
-          keyExtractor={(item) => item.id.toString()}
-          showsVerticalScrollIndicator={false}
-          style={styles.pointsList}
-        />
+        {loading ? (
+          <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 50 }} />
+        ) : (
+          <FlatList
+            data={droppingPoints}
+            renderItem={renderDroppingPoint}
+            keyExtractor={(item) => item.id.toString()}
+            showsVerticalScrollIndicator={false}
+            style={styles.pointsList}
+            ListEmptyComponent={
+              <Text style={{ textAlign: 'center', marginTop: 20, color: '#666' }}>
+                No dropping points available
+              </Text>
+            }
+          />
+        )}
       </View>
 
       <TouchableOpacity

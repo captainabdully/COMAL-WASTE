@@ -15,6 +15,7 @@ router.get("/filter/date-range",  authMiddleware, allowRoles("admin", "manager")
 router.get("/last-7-days", authMiddleware, allowRoles("admin", "manager"), priceController.last7Days);
 router.get("/last-30-days", authMiddleware, allowRoles("admin", "manager"), priceController.last30Days);
 router.get("/group-by-date", authMiddleware, allowRoles("admin", "manager"), priceController.groupByDate);
+router.delete("/:id", authMiddleware, allowRoles("admin", "manager"), priceController.deletePrice);
 
 export default router;
 

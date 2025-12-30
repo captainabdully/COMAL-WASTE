@@ -140,6 +140,26 @@ async sortByCategory(req, res) {
     }
   }
 
+  async getPricesGroupedByDate(req, res) {
+    try {
+      const data = await priceService.getPricesGroupedByDate();
+      res.status(200).json({ data });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  async deletePrice(req, res) {
+    try {
+      const { id } = req.params;
+      await priceService.deletePrice(id);
+      res.status(200).json({ message: "Price deleted successfully" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
 
 }
 

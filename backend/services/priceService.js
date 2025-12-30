@@ -121,6 +121,13 @@ async getAllPreviousPrices() {
       ORDER BY date DESC;
     `;
   }
+
+  async deletePrice(id) {
+    return await sql`
+      DELETE FROM daily_price
+      WHERE id = ${id};
+    `;
+  }
 }
 
 export default new PriceService();

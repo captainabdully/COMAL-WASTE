@@ -7,6 +7,7 @@ import { FleetManagement } from './FleetManagement';
 import { MaterialInventory } from './MaterialInventory';
 import { FinancialOverview } from './FinancialOverview';
 import { ReportsAnalytics } from './ReportsAnalytics';
+import { DailyPrices } from './DailyPrices';
 import { Settings } from './Settings';
 
 const AppLayout: React.FC = () => {
@@ -28,6 +29,8 @@ const AppLayout: React.FC = () => {
         return <FinancialOverview />;
       case 'reports':
         return <ReportsAnalytics />;
+      case 'daily-prices':
+        return <DailyPrices />;
       case 'settings':
         return <Settings />;
       default:
@@ -49,8 +52,8 @@ const AppLayout: React.FC = () => {
                 <span className="text-2xl">🔔</span>
                 <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                + Quick Action
+              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"><a href="/login"> Logout!</a>
+
               </button>
             </div>
           </div>

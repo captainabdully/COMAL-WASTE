@@ -14,6 +14,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange
     { id: 'materials', label: 'Material Inventory', icon: '📋' },
     { id: 'financial', label: 'Financial', icon: '💰' },
     { id: 'reports', label: 'Reports', icon: '📈' },
+    { id: 'daily-prices', label: 'Daily Prices', icon: '🏷️' },
     { id: 'settings', label: 'Admin panel', icon: '⚙️' }
   ];
 
@@ -29,11 +30,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange
           <button
             key={item.id}
             onClick={() => onSectionChange(item.id)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-              activeSection === item.id
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${activeSection === item.id
                 ? 'bg-green-600 text-white'
                 : 'text-gray-300 hover:bg-gray-800'
-            }`}
+              }`}
           >
             <span className="text-xl">{item.icon}</span>
             <span className="font-medium">{item.label}</span>

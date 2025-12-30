@@ -4,13 +4,13 @@ class PriceController {
   async createDailyPrice(req, res) {
     try {
       const { dropping_point_id, category, price, created_by } = req.body;
-      
+
       if (!dropping_point_id || !category || price === undefined || !created_by) {
         return res.status(400).json({ message: "All fields are required" });
       }
 
       await priceService.createDailyPrice(req.body);
-      
+
       res.status(201).json({ message: "Daily price created successfully" });
     } catch (error) {
       console.error("Error creating daily price:", error);
@@ -21,13 +21,13 @@ class PriceController {
   async getTodayPricesByDroppingPoint(req, res) {
     try {
       const { dropping_point_id } = req.params;
-      
+
       if (!dropping_point_id) {
         return res.status(400).json({ message: "dropping_point_id is required" });
       }
 
       const prices = await priceService.getTodayPricesByDroppingPoint(dropping_point_id);
-      
+
       res.status(200).json({ data: prices });
     } catch (error) {
       console.error("Error fetching today's prices:", error);
@@ -38,7 +38,7 @@ class PriceController {
   async getAllTodayPrices(req, res) {
     try {
       const prices = await priceService.getAllTodayPrices();
-      
+
       res.status(200).json({ data: prices });
     } catch (error) {
       console.error("Error fetching today's prices:", error);
@@ -46,41 +46,41 @@ class PriceController {
     }
   }
   async getAllPreviousPrices(req, res) {
-  try {
-    const prices = await priceService.getAllPreviousPrices();
+    try {
+      const prices = await priceService.getAllPreviousPrices();
 
-    res.status(200).json({
-      message: "Previous prices fetched successfully",
-      data: prices
-    });
-  } catch (error) {
-    console.error("Error fetching previous prices:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-}
-
-async getPreviousPricesByLocation(req, res) {
-  try {
-    const { location_id } = req.params;
-
-    if (!location_id) {
-      return res.status(400).json({ message: "location_id is required" });
+      res.status(200).json({
+        message: "Previous prices fetched successfully",
+        data: prices
+      });
+    } catch (error) {
+      console.error("Error fetching previous prices:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
-
-    const prices = await priceService.getPreviousPricesByLocation(location_id);
-
-    res.status(200).json({
-      message: "Previous prices fetched successfully",
-      data: prices
-    });
-
-  } catch (error) {
-    console.error("Error fetching previous prices:", error);
-    res.status(500).json({ message: "Internal server error" });
   }
-}
 
-async sortByCategory(req, res) {
+  async getPreviousPricesByLocation(req, res) {
+    try {
+      const { location_id } = req.params;
+
+      if (!location_id) {
+        return res.status(400).json({ message: "location_id is required" });
+      }
+
+      const prices = await priceService.getPreviousPricesByLocation(location_id);
+
+      res.status(200).json({
+        message: "Previous prices fetched successfully",
+        data: prices
+      });
+
+    } catch (error) {
+      console.error("Error fetching previous prices:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  async sortByCategory(req, res) {
     try {
       const data = await priceService.getPricesSortedByCategory();
       res.status(200).json({ data });
@@ -134,16 +134,6 @@ async sortByCategory(req, res) {
       const data = await priceService.getPricesGroupedByDate();
       res.status(200).json({ data });
 
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  }
-
-  async getPricesGroupedByDate(req, res) {
-    try {
-      const data = await priceService.getPricesGroupedByDate();
-      res.status(200).json({ data });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal server error" });

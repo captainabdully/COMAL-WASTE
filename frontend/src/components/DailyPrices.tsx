@@ -91,7 +91,7 @@ export const DailyPrices: React.FC = () => {
     const handleSavePrice = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const payload = { ...currentPrice, user_id: user?.id };
+            const payload = { ...currentPrice, created_by: user?.user_id };
 
             if (isEditing && currentPrice.id) {
                 // Assuming update uses base URL or specific ID URL. For now using base.

@@ -80,11 +80,6 @@ export const VendorManagement: React.FC = () => {
       key: 'status',
       label: 'Status',
       render: (status: string) => <StatusBadge status={status as any} />
-    },
-    {
-      key: 'totalSales',
-      label: 'Total Sales (TZS)',
-      render: (val: number) => val.toLocaleString()
     }
   ];
 

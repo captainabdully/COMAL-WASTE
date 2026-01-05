@@ -4,7 +4,6 @@ import { DashboardOverview } from './DashboardOverview';
 import { VendorManagement } from './VendorManagement';
 import { PickupRequests } from './PickupRequests';
 import { FleetManagement } from './FleetManagement';
-import { MaterialInventory } from './MaterialInventory';
 import { FinancialOverview } from './FinancialOverview';
 import { ReportsAnalytics } from './ReportsAnalytics';
 import { DailyPrices } from './DailyPrices';
@@ -23,8 +22,6 @@ const AppLayout: React.FC = () => {
         return <PickupRequests />;
       case 'fleet':
         return <FleetManagement />;
-      case 'materials':
-        return <MaterialInventory />;
       case 'financial':
         return <FinancialOverview />;
       case 'reports':

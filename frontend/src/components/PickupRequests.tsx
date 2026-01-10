@@ -10,6 +10,9 @@ export const PickupRequests: React.FC = () => {
   const { token, user } = useAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completionNotes, setCompletionNotes] = useState('');
+  const [processingOrder, setProcessingOrder] = useState<any>(null);
 
   useEffect(() => {
     fetchRequests();
@@ -53,11 +56,42 @@ export const PickupRequests: React.FC = () => {
       setRequests(prev =>
         prev.map(r => r.id === id ? { ...r, status: status } : r)
       );
+
+      // Also update selectedRequest if it's the one we're viewing
+      if (selectedRequest && selectedRequest.id === id) {
+        setSelectedRequest({ ...selectedRequest, status: status });
+      }
+
       alert(`Request ${id} updated to ${status}`);
       fetchRequests(); // Refresh to ensure data consistency
     } catch (error: any) {
       console.error("Error updating status:", error);
       alert(error.response?.data?.message || "Failed to update status");
+    }
+  };
+
+  const handleCompleteOrder = async () => {
+    if (!processingOrder) return;
+
+    try {
+      // 1. Record order completion
+      await axios.post(`${API_URL}/pickup-order/completion`, {
+        order_id: processingOrder.id,
+        completed_by: user?.user_id,
+        completion_notes: completionNotes
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // 2. Update order status to 'completed'
+      await updateStatus(processingOrder.id, 'completed');
+
+      setShowCompletionModal(false);
+      setCompletionNotes('');
+      setProcessingOrder(null);
+    } catch (error: any) {
+      console.error("Error completing order:", error);
+      alert(error.response?.data?.message || "Failed to complete order");
     }
   };
 
@@ -236,6 +270,55 @@ export const PickupRequests: React.FC = () => {
                   </button>
                 </>
               )}
+
+              {['assigned', 'in-progress'].includes(selectedRequest.status) && (
+                <button
+                  onClick={() => {
+                    setProcessingOrder(selectedRequest);
+                    setShowCompletionModal(true);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm"
+                >
+                  Complete Order
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCompletionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Complete Order</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Please enter any notes or comments regarding the completion of this order.
+            </p>
+            <textarea
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+              rows={4}
+              placeholder="Enter completion notes..."
+              value={completionNotes}
+              onChange={(e) => setCompletionNotes(e.target.value)}
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowCompletionModal(false);
+                  setProcessingOrder(null);
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCompleteOrder}
+                disabled={!completionNotes.trim()}
+                className={`px-6 py-2 rounded-lg text-white font-medium transition ${completionNotes.trim() ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'
+                  }`}
+              >
+                Confirm Completion
+              </button>
             </div>
           </div>
         </div>

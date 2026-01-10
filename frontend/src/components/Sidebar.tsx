@@ -10,11 +10,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'vendors', label: 'Vendors', icon: '🏢' },
     { id: 'pickups', label: 'Pickup Requests', icon: '📦' },
+    { id: 'daily-prices', label: 'Daily Prices', icon: '🏷️' },
     { id: 'fleet', label: 'Fleet Management', icon: '🚚' },
-    { id: 'materials', label: 'Material Inventory', icon: '📋' },
     { id: 'financial', label: 'Financial', icon: '💰' },
     { id: 'reports', label: 'Reports', icon: '📈' },
-    { id: 'daily-prices', label: 'Daily Prices', icon: '🏷️' },
     { id: 'settings', label: 'Admin panel', icon: '⚙️' }
   ];
 
@@ -48,7 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange
           </div>
           <div>
             <p className="font-medium">Admin User</p>
-            <p className="text-xs text-gray-400">admin@comal.co.tz</p>
+            <p className="text-xs text-gray-400">admin@system.com</p>
           </div>
         </div>
       </div>

@@ -63,7 +63,7 @@ export default function SignIn() {
     <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View style={styles.container}>
         <Image source={require("../../assets/images/logo 1.png")} style={styles.illustration} />
-        <Text style={styles.title}>Karibu Country</Text>
+        <Text style={styles.title}>Skrepa Chap</Text>
 
         {error !== "" && (
           <View style={styles.errorBox}>

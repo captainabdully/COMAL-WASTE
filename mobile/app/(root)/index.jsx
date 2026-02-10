@@ -6,8 +6,7 @@ import { useEffect, useState } from "react";
 import PageLoader from "../../components/PageLoader";
 import { styles } from "../../assets/styles/home.styles";
 import { Ionicons } from "@expo/vector-icons";
-import { BalanceCard } from "../../components/BalanceCard";
-import NoTransactionsFound from "../../components/NoTransactionsFound";
+
 
 import Constants from "expo-constants";
 
@@ -177,7 +176,27 @@ const pickupStyles = {
     shadowRadius: 4,
     elevation: 5,
   },
+
+   gradientBtn: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 18,
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gradientText: {
+    color: '#FFF',
+    fontWeight: '800',
+    fontSize: 18,
+    marginLeft: 8,
+  },
+
 };
+
+
+ 
 
 // Status colors mapping
 const statusColors = {
@@ -438,21 +457,12 @@ export default function PickupRequests() {
           </TouchableOpacity>
 
         </View>
-        <TouchableOpacity
-          onPress={() => router.push('/dropping-point')}
-          style={{
-            backgroundColor: '#4CAF50',
-            padding: 15,
-            borderRadius: 10,
-            marginTop: 20,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Ionicons name="location" size={20} color="#FFF" style={{ marginRight: 10 }} />
-          <Text style={{ color: '#FFF', fontWeight: '600' }}>Our dropping points</Text>
-        </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/dropping-point')} activeOpacity={0.8} style={pickupStyles.gradientBtn}>
+      
+          <Ionicons name="trending-up" size={22} color="#FFF" />
+          <Text style={pickupStyles.gradientText}>Daily Prices</Text>
+        
+      </TouchableOpacity>
       </View>
 
       <View style={pickupStyles.mainContent}>

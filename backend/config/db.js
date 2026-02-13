@@ -38,7 +38,8 @@ async function initDB() {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'category_type') THEN
-          CREATE TYPE category_type AS ENUM ('heavy','mixer', 'light', 'cast');
+          CREATE TYPE category_type AS ENUM ('heavy','light','mixer','cast');
+           
         END IF;
       END$$;
     `;

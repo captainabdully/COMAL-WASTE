@@ -3,29 +3,34 @@ import { sql } from '../config/db.js';
 class PriceService {
   async createDailyPrice(priceData) {
     const { dropping_point_id, category, price, created_by } = priceData;
-    
+
     const result = await sql`
       INSERT INTO daily_price (dropping_point_id, category, price, created_by) 
       VALUES (${dropping_point_id}, ${category}, ${price}, ${created_by})
       RETURNING *
     `;
-    
+
     return result[0];
   }
 
   async getTodayPricesByDroppingPoint(dropping_point_id) {
     return await sql`
+      WITH latest_prices AS (
+        SELECT DISTINCT ON (category) dp.*
+        FROM daily_price dp
+        WHERE dp.dropping_point_id = ${dropping_point_id}
+          AND dp.effective_date >= CURRENT_DATE - INTERVAL '7 days'
+        ORDER BY dp.category, dp.effective_date DESC, dp.created_at DESC
+      )
       SELECT 
-        dp.*, 
+        lp.*, 
         dpp.location_name, 
         u.name as created_by_name
-      FROM daily_price dp
-      LEFT JOIN dropping_point dpp ON dp.dropping_point_id = dpp.id
-      LEFT JOIN users u ON dp.created_by = u.user_id
-      WHERE dp.dropping_point_id = ${dropping_point_id}
-        AND dp.effective_date = CURRENT_DATE
+      FROM latest_prices lp
+      LEFT JOIN dropping_point dpp ON lp.dropping_point_id = dpp.id
+      LEFT JOIN users u ON lp.created_by = u.user_id
       ORDER BY 
-        CASE dp.category
+        CASE lp.category
           WHEN 'heavy' THEN 1
           WHEN 'light' THEN 2
           WHEN 'cast' THEN 3
@@ -36,15 +41,20 @@ class PriceService {
 
   async getAllTodayPrices() {
     return await sql`
-      SELECT dp.*, dpp.location_name, u.name as created_by_name
-      FROM daily_price dp
-      LEFT JOIN dropping_point dpp ON dp.dropping_point_id = dpp.id
-      LEFT JOIN users u ON dp.created_by = u.user_id
-      WHERE dp.effective_date = CURRENT_DATE
-      ORDER BY dpp.location_name, dp.category
+      WITH latest_prices AS (
+        SELECT DISTINCT ON (dropping_point_id, category) dp.*
+        FROM daily_price dp
+        WHERE dp.effective_date >= CURRENT_DATE - INTERVAL '7 days'
+        ORDER BY dp.dropping_point_id, dp.category, dp.effective_date DESC, dp.created_at DESC
+      )
+      SELECT lp.*, dpp.location_name, u.name as created_by_name
+      FROM latest_prices lp
+      LEFT JOIN dropping_point dpp ON lp.dropping_point_id = dpp.id
+      LEFT JOIN users u ON lp.created_by = u.user_id
+      ORDER BY dpp.location_name, lp.category
     `;
   }
-async getAllPreviousPrices() {
+  async getAllPreviousPrices() {
     return await sql`
       SELECT *
       FROM daily_price
@@ -53,7 +63,7 @@ async getAllPreviousPrices() {
     `;
   }
 
- async getPreviousPricesByLocation(location_id) {
+  async getPreviousPricesByLocation(location_id) {
     return await sql`
       SELECT *
       FROM daily_price
@@ -63,7 +73,7 @@ async getAllPreviousPrices() {
     `;
   }
 
-   // 1. Sort by category
+  // 1. Sort by category
   async getPricesSortedByCategory() {
     return await sql`
       SELECT *

@@ -7,7 +7,7 @@ const API_URL_CREATE = 'http://localhost:5001/api/daily-price';
 
 const API_URL_DELETE = 'http://localhost:5001/api/daily-price';
 // specific endpoint to fetch today's prices
-const API_URL_TODAY = 'http://localhost:5001/api/daily-price/today';
+const API_URL_LAST_7_DAYS = 'http://localhost:5001/api/daily-price/last-7-days';
 // specific endpoint to fetch dropping points
 const API_URL_DROPPING_POINTS = 'http://localhost:5001/api/dropping-point';
 
@@ -39,6 +39,7 @@ export const DailyPrices: React.FC = () => {
     });
     const [isEditing, setIsEditing] = useState(false);
 
+
     useEffect(() => {
         fetchPrices();
         fetchDroppingPoints();
@@ -66,10 +67,10 @@ export const DailyPrices: React.FC = () => {
     const fetchPrices = async () => {
         try {
             setIsLoading(true);
-            const res = await axios.get(API_URL_TODAY, {
+            const res = await axios.get(API_URL_LAST_7_DAYS, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            console.log('Daily Prices Response:', res.data); // Debugging
+            console.log('Last 7 Days Prices Response:', res.data); // Debugging
 
             let data: DailyPrice[] = [];
             if (Array.isArray(res.data)) {
@@ -82,7 +83,7 @@ export const DailyPrices: React.FC = () => {
 
             setPrices(data);
         } catch (error) {
-            console.error("Error fetching daily prices:", error);
+            console.error("Error fetching last 7 days prices:", error);
         } finally {
             setIsLoading(false);
         }
@@ -215,7 +216,8 @@ export const DailyPrices: React.FC = () => {
                                     <option value="">Select Category</option>
                                     <option value="heavy">Heavy</option>
                                     <option value="light">Light</option>
-                                    <option value="cast">Cast</option>
+                                     <option value="cast">Cast</option>
+                                     <option value="mixer">Mixer</option>
                                 </select>
                             </div>
 

@@ -48,7 +48,7 @@ export default function Profile() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const userJson = await userRes.json();
-            const user = userJson.data || {};
+            const user = userJson || {}; // Adjusted to match backend response
 
             // 2. Fetch User Orders for Stats
             // Note: Assuming getVendorOrders returns all orders for a vendor.
@@ -85,9 +85,9 @@ export default function Profile() {
             setUserData({
                 email: user.email || email,
                 name: user.name || (email ? email.split('@')[0] : 'User'),
-                phone: user.phone_number || 'N/A',
+                phone: user.phone_number || '',
                 userId: userId,
-                joinedDate: user.created_at ? new Date(user.created_at).toDateString() : 'N/A',
+                joinedDate: user.created_at ? new Date(user.created_at).toDateString() : '',
                 ...stats
             });
 

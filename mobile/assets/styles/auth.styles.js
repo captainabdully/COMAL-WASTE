@@ -34,6 +34,25 @@ export const styles = StyleSheet.create({
   errorInput: {
     borderColor: COLORS.expense,
   },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 16,
+    paddingRight: 15,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 15,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  eyeIcon: {
+    padding: 5,
+  },
   button: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,

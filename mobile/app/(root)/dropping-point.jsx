@@ -14,7 +14,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 
-const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://localhost:5001';
+const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://54.209.99.13:5001';
 
 const CATEGORY_COLORS = {
   heavy: '#FF6B6B',

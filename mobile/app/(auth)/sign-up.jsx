@@ -16,6 +16,7 @@ export default function SignUp() {
   const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const onRegister = async () => {
@@ -46,7 +47,13 @@ export default function SignUp() {
   };
 
   return (
-    <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1 }}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ flexGrow: 1 }}
+      enableOnAndroid={true}
+      extraScrollHeight={20}
+      keyboardOpeningTime={0}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={styles.container}>
         <Image source={require("../../assets/images/logo 1.png")} style={styles.illustration} />
         <Text style={styles.title}>Create Account</Text>
@@ -64,7 +71,24 @@ export default function SignUp() {
         <TextInput style={styles.input} placeholder="Email" onChangeText={setEmail} autoCapitalize="none" />
         <TextInput style={styles.input} placeholder="Phone Number" onChangeText={setPhone} />
         <TextInput style={styles.input} placeholder="Address" onChangeText={setAddress} />
-        <TextInput style={styles.input} secureTextEntry placeholder="Password" onChangeText={setPassword} />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            secureTextEntry={!showPassword}
+            placeholder="Password"
+            onChangeText={setPassword}
+          />
+          <TouchableOpacity
+            style={styles.eyeIcon}
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <Ionicons
+              name={showPassword ? "eye" : "eye-off"}
+              size={24}
+              color={COLORS.text}
+            />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.button} onPress={onRegister} disabled={loading}>
           {loading ? (

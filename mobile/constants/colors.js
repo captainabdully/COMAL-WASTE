@@ -18,7 +18,7 @@ const forestTheme = {
   text: "#1B5E20",
   border: "#C8E6C9",
   white: "#FFFFFF",
-  textLight: "#66BB6A",
+  textLight: "#f7d709ff",
   expense: "#C62828",
   income: "#388E3C",
   card: "#FFFFFF",

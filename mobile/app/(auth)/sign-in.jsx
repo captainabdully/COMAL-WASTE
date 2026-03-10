@@ -14,6 +14,7 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const onLogin = async () => {
     setError("");
@@ -60,9 +61,15 @@ export default function SignIn() {
   };
 
   return (
-    <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1 }}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ flexGrow: 1 }}
+      enableOnAndroid={true}
+      extraScrollHeight={20}
+      keyboardOpeningTime={0}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={styles.container}>
-        <Image source={require("../../assets/images/logo 1.png")} style={styles.illustration} />
+        <Image source={require()} style={styles.illustration} />
         <Text style={styles.title}>Skrepa Chap</Text>
 
         {error !== "" && (
@@ -73,7 +80,24 @@ export default function SignIn() {
         )}
 
         <TextInput style={styles.input} placeholder="Enter email" onChangeText={setEmail} autoCapitalize="none" />
-        <TextInput style={styles.input} secureTextEntry placeholder="Enter password" onChangeText={setPassword} />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            secureTextEntry={!showPassword}
+            placeholder="Enter password"
+            onChangeText={setPassword}
+          />
+          <TouchableOpacity
+            style={styles.eyeIcon}
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <Ionicons
+              name={showPassword ? "eye" : "eye-off"}
+              size={24}
+              color={COLORS.text}
+            />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.button} onPress={onLogin}>
           <Text style={styles.buttonText}>Sign In</Text>

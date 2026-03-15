@@ -69,7 +69,7 @@ export default function SignIn() {
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.container}>
-        <Image source={require()} style={styles.illustration} />
+        <Image source={require("../../assets/images/logo 1.png")} style={styles.illustration} />
         <Text style={styles.title}>Skrepa Chap</Text>
 
         {error !== "" && (

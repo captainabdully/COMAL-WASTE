@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { View, Text, ScrollView, Image, ActivityIndicator, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Constants from "expo-constants";
 
 const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://54.209.99.13:5001';
@@ -10,6 +11,7 @@ const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://54.209.99.13:500
 export default function PickupDetails() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userRoles, setUserRoles] = useState([]);
@@ -39,8 +41,10 @@ export default function PickupDetails() {
                 }
             });
             const result = await response.json();
+            const data = result.data || result;
+
             if (response.ok) {
-                setOrder(result.data);
+                setOrder(data);
             } else {
                 Alert.alert("Error", "Failed to load order details");
             }
@@ -131,7 +135,7 @@ export default function PickupDetails() {
         <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
             <View style={{
                 backgroundColor: '#4CAF50',
-                paddingTop: 60,
+                paddingTop: insets.top + 10,
                 paddingBottom: 20,
                 paddingHorizontal: 20,
                 flexDirection: 'row',
@@ -143,7 +147,7 @@ export default function PickupDetails() {
                 <Text style={{ color: '#FFF', fontSize: 20, fontWeight: 'bold' }}>Order Details</Text>
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: 20 }}>
+            <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}>
                 <View style={{ backgroundColor: '#FFF', borderRadius: 15, padding: 20, shadowOpacity: 0.1, elevation: 3 }}>
                     <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Order #{order.order_id}</Text>
                     <View style={{ flexDirection: 'row', marginBottom: 20 }}>

@@ -1,6 +1,7 @@
 // app/(root)/index.jsx
 import { useRouter } from "expo-router";
 import { Alert, FlatList, Image, RefreshControl, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
 import PageLoader from "../../components/PageLoader";
@@ -12,192 +13,6 @@ import Constants from "expo-constants";
 
 const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://54.209.99.13:5001';
 // New styles for pickup layout
-const pickupStyles = {
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#4CAF50',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-  },
-  welcomeText: {
-    color: '#FFF',
-    fontSize: 16,
-  },
-  userName: {
-    color: '#FFF',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  logoutButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 10,
-    borderRadius: 8,
-  },
-  mainContent: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#333',
-  },
-  pickupCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  pickupHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  pickupId: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  pickupStatus: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  pickupDetails: {
-    marginBottom: 15,
-  },
-  pickupItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  pickupLabel: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  pickupValue: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '600',
-  },
-  pickupComment: {
-    fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 15,
-  },
-  actionButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginHorizontal: 5,
-  },
-  acceptButton: {
-    backgroundColor: '#4CAF50',
-  },
-  rejectButton: {
-    backgroundColor: '#f44336',
-  },
-  actionButtonText: {
-    color: '#FFF',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  noPickupsContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 50,
-  },
-  noPickupsText: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 10,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 30,
-    right: 20,
-    backgroundColor: '#4CAF50',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-
-   gradientBtn: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 18,
-    marginTop: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  gradientText: {
-    color: '#FFF',
-    fontWeight: '800',
-    fontSize: 18,
-    marginLeft: 8,
-  },
-
-};
-
-
- 
-
 // Status colors mapping
 const statusColors = {
   pending: { bg: '#FFE082', text: '#E65100' },
@@ -208,6 +23,190 @@ const statusColors = {
 
 export default function PickupRequests() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  const pickupStyles = {
+    container: {
+      flex: 1,
+      backgroundColor: '#f5f5f5',
+    },
+    header: {
+      backgroundColor: '#4CAF50',
+      paddingTop: insets.top + 10,
+      paddingBottom: 20,
+      paddingHorizontal: 20,
+      borderBottomLeftRadius: 20,
+      borderBottomRightRadius: 20,
+    },
+    headerContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    userInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: '#FFF',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 10,
+    },
+    avatarText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#4CAF50',
+    },
+    welcomeText: {
+      color: '#FFF',
+      fontSize: 16,
+    },
+    userName: {
+      color: '#FFF',
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
+    logoutButton: {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      padding: 10,
+      borderRadius: 8,
+    },
+    mainContent: {
+      flex: 1,
+      padding: 20,
+    },
+    sectionTitle: {
+      fontSize: 22,
+      fontWeight: 'bold',
+      marginBottom: 20,
+      color: '#333',
+    },
+    pickupCard: {
+      backgroundColor: '#FFF',
+      borderRadius: 15,
+      padding: 20,
+      marginBottom: 15,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    pickupHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 15,
+    },
+    pickupId: {
+      fontSize: 14,
+      color: '#666',
+      fontWeight: '500',
+    },
+    pickupStatus: {
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    pickupDetails: {
+      marginBottom: 15,
+    },
+    pickupItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    pickupLabel: {
+      fontSize: 14,
+      color: '#666',
+      fontWeight: '500',
+    },
+    pickupValue: {
+      fontSize: 14,
+      color: '#333',
+      fontWeight: '600',
+    },
+    pickupComment: {
+      fontSize: 14,
+      color: '#666',
+      fontStyle: 'italic',
+      marginTop: 10,
+      paddingTop: 10,
+      borderTopWidth: 1,
+      borderTopColor: '#eee',
+    },
+    actionButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 15,
+    },
+    actionButton: {
+      flex: 1,
+      paddingVertical: 10,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginHorizontal: 5,
+    },
+    acceptButton: {
+      backgroundColor: '#4CAF50',
+    },
+    rejectButton: {
+      backgroundColor: '#f44336',
+    },
+    actionButtonText: {
+      color: '#FFF',
+      fontWeight: '600',
+      fontSize: 14,
+    },
+    noPickupsContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 50,
+    },
+    noPickupsText: {
+      fontSize: 16,
+      color: '#666',
+      marginTop: 10,
+    },
+    fab: {
+      position: 'absolute',
+      bottom: 30,
+      right: 20,
+      backgroundColor: '#4CAF50',
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    gradientBtn: {
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      borderRadius: 18,
+      marginTop: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#2E7D32', // Solid color to avoid complexity
+    },
+    gradientText: {
+      color: '#FFF',
+      fontWeight: '800',
+      fontSize: 18,
+      marginLeft: 8,
+    },
+  };
   const [refreshing, setRefreshing] = useState(false);
   const [userEmail, setUserEmail] = useState("User");
   const [pickups, setPickups] = useState([]);
@@ -260,9 +259,10 @@ export default function PickupRequests() {
       });
 
       const result = await response.json();
+      const data = Array.isArray(result) ? result : (result.data || []);
 
-      if (response.ok && result.data) {
-        setPickups(result.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+      if (response.ok) {
+        setPickups(data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
       }
     } catch (error) {
       console.error('Error loading pickups:', error);
@@ -481,6 +481,7 @@ export default function PickupRequests() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
+          contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
           showsVerticalScrollIndicator={false}
         />
       </View>

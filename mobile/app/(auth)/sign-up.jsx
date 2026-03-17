@@ -7,9 +7,11 @@ import { registerUser } from "../../constants/authAPI";
 import { styles } from "../../assets/styles/auth.styles";
 import { COLORS } from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SignUp() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -48,7 +50,7 @@ export default function SignUp() {
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{ flexGrow: 1 }}
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 20 }}
       enableOnAndroid={true}
       extraScrollHeight={20}
       keyboardOpeningTime={0}

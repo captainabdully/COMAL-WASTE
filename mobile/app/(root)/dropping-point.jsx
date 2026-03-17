@@ -12,20 +12,22 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 
 const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://54.209.99.13:5001';
 
 const CATEGORY_COLORS = {
-  heavy: '#FF6B6B',
-  mixer: '#4ECDC4',
-  light: '#FFD166',
-  cast: '#06D6A0',
-  default: '#CCCCCC',
+  heavy: '#EF4444',  // Red-500
+  mixer: '#10B981',  // Emerald-500
+  light: '#F59E0B',  // Amber-500
+  cast: '#3B82F6',   // Blue-500
+  default: '#6B7280', // Gray-500
 };
 
 export default function DroppingPoints() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [userEmail, setUserEmail] = useState('');
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -44,51 +46,63 @@ export default function DroppingPoints() {
 
   const fetchData = async () => {
     try {
+      console.log("Fetching DroppingPoints and Prices...");
       setLoading(true);
       const token = await SecureStore.getItemAsync("authToken");
+      console.log("Auth token found:", !!token);
 
       // 1. Fetch Dropping Points
       const pointsRes = await fetch(`${API_URL}/api/dropping-point`, {
-        // headers: { 'Authorization': `Bearer ${token}` } // Assuming public or token optional for view
+        headers: { 'Authorization': `Bearer ${token}` } 
       });
       const pointsData = await pointsRes.json();
-      const points = pointsData.data || [];
+      // Handle points structure: result.data or result directly
+      const points = Array.isArray(pointsData) ? pointsData : (pointsData.data || []);
+      console.log("Fetched points count:", points.length);
 
       // 2. Fetch Today's Prices
       const pricesRes = await fetch(`${API_URL}/api/daily-price/today`, {
-        // headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       const pricesJson = await pricesRes.json();
-      const prices = pricesJson.data || [];
+      // Handle prices structure: result.data or result directly
+      const prices = Array.isArray(pricesJson) ? pricesJson : (pricesJson.data || []);
+      console.log("Fetched prices count:", prices.length);
 
       // 3. Merge Data
-      // Create a map of droppingPointId -> categories array
       const pricesMap = {};
       prices.forEach(p => {
-        if (!pricesMap[p.dropping_point_id]) {
-          pricesMap[p.dropping_point_id] = [];
+        const dpId = p.dropping_point_id;
+        if (!dpId) return;
+        if (!pricesMap[dpId]) {
+          pricesMap[dpId] = [];
         }
-        pricesMap[p.dropping_point_id].push({
-          id: p.category, // using category name as id for UI logic
-          name: p.category.charAt(0).toUpperCase() + p.category.slice(1),
-          price: `Tsh${p.price}/kg`,
-          color: CATEGORY_COLORS[p.category] || CATEGORY_COLORS.default
+        const categoryKey = (p.category || '').toLowerCase().trim();
+        pricesMap[dpId].push({
+          id: `${dpId}-${categoryKey}-${p.id || Math.random()}`,
+          name: p.category ? (p.category.charAt(0).toUpperCase() + p.category.slice(1)) : 'Unknown',
+          price: `Tsh ${p.price}/kg`,
+          color: CATEGORY_COLORS[categoryKey] || CATEGORY_COLORS.default
         });
       });
 
       // Attach categories to points
-      const mergedPoints = points.map(point => ({
-        id: point.id,
-        name: point.location_name,
-        address: point.address,
-        categories: pricesMap[point.id] || []
-      }));
+      const mergedPoints = points.map(point => {
+        const pointId = point.id;
+        return {
+          id: pointId,
+          name: point.location_name || point.name || 'Unnamed Location',
+          address: point.address || 'No Address',
+          categories: pricesMap[pointId] || []
+        };
+      });
 
+      console.log("Merged points with categories:", mergedPoints.map(p => ({ id: p.id, catCount: p.categories.length })));
       setDroppingPoints(mergedPoints);
 
     } catch (error) {
-      console.error("Error fetching data:", error);
-      Alert.alert("Error", "Failed to load dropping points");
+      console.error("CRITICAL DATA FETCH ERROR:", error);
+      Alert.alert("Connection Error", "Could not load data. Please check your network.");
     } finally {
       setLoading(false);
     }
@@ -164,7 +178,7 @@ export default function DroppingPoints() {
     },
     header: {
       backgroundColor: '#4CAF50',
-      paddingTop: 60,
+      paddingTop: insets.top + 10,
       paddingBottom: 20,
       paddingHorizontal: 20,
     },
@@ -258,11 +272,12 @@ export default function DroppingPoints() {
     metaItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      marginRight: 10,
     },
     metaText: {
       fontSize: 12,
       color: '#666',
+      marginLeft: 4,
     },
     pointAddress: {
       fontSize: 14,
@@ -272,11 +287,11 @@ export default function DroppingPoints() {
     categoriesGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: 10,
+      marginHorizontal: -5,
     },
     categoryCard: {
-      flex: 1,
-      minWidth: '45%',
+      width: '47%',
+      margin: 5,
       backgroundColor: '#FFF',
       borderRadius: 10,
       padding: 12,
@@ -291,13 +306,15 @@ export default function DroppingPoints() {
     },
     categoryName: {
       fontSize: 14,
-      fontWeight: '600',
-      color: '#333',
-      marginBottom: 5,
+      fontWeight: 'bold',
+      color: '#1F2937',
+      marginBottom: 2,
+      textTransform: 'capitalize',
     },
     categoryPrice: {
-      fontSize: 12,
-      color: '#666',
+      fontSize: 13,
+      color: '#4B5563',
+      fontWeight: '600',
     },
     selectedIndicator: {
       position: 'absolute',
@@ -307,7 +324,7 @@ export default function DroppingPoints() {
 
     fab: {
       position: 'absolute',
-      bottom: 20,
+      bottom: insets.bottom + 20,
       right: 20,
       backgroundColor: '#4CAF50',
       padding: 16,
@@ -362,6 +379,7 @@ export default function DroppingPoints() {
             keyExtractor={(item) => item.id.toString()}
             showsVerticalScrollIndicator={false}
             style={styles.pointsList}
+            contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
             ListEmptyComponent={
               <Text style={{ textAlign: 'center', marginTop: 20, color: '#666' }}>
                 No dropping points available

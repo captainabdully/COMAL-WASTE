@@ -11,11 +11,13 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const API_URL = 'http://54.209.99.13:5001';
 
 export default function RequestPickup() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   
   const [loading, setLoading] = useState(false);
@@ -59,7 +61,7 @@ export default function RequestPickup() {
 
     try {
       const vendor_id = await SecureStore.getItemAsync('userId');
-      const phone_number = await SecureStore.getItemAsync('userPhone') || '+91 0000000000';
+      const phone_number = await SecureStore.getItemAsync('userPhone') || '+255712345678';
 
       const pickupData = {
         vendor_id,
@@ -72,9 +74,13 @@ export default function RequestPickup() {
         image: 'default-waste-image.jpg',
       };
 
+      const token = await SecureStore.getItemAsync('authToken');
       const response = await fetch(`${API_URL}/api/pickup-order`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(pickupData),
       });
 
@@ -107,7 +113,7 @@ export default function RequestPickup() {
     },
     header: {
       backgroundColor: '#4CAF50',
-      paddingTop: 60,
+      paddingTop: insets.top + 10,
       paddingBottom: 20,
       paddingHorizontal: 20,
       flexDirection: 'row',
@@ -234,7 +240,10 @@ export default function RequestPickup() {
         <Text style={styles.headerTitle}>Request Pickup</Text>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+      >
         <View style={styles.summaryCard}>
           <Text style={styles.sectionTitle}>Pickup Details</Text>
           
@@ -286,7 +295,7 @@ export default function RequestPickup() {
 
         <View style={styles.priceSection}>
           <Text style={styles.priceLabel}>Total Amount</Text>
-          <Text style={styles.priceValue}>₹{totalPrice}</Text>
+          <Text style={styles.priceValue}>Tsh {totalPrice}</Text>
         </View>
 
         <TouchableOpacity

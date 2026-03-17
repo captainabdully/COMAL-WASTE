@@ -13,11 +13,13 @@ import {
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const API_URL = 'http://54.209.99.13:5001';
 
 export default function ChangePassword() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -176,7 +178,7 @@ export default function ChangePassword() {
     },
     header: {
       backgroundColor: '#4CAF50',
-      paddingTop: 60,
+      paddingTop: insets.top + 10,
       paddingBottom: 20,
       paddingHorizontal: 20,
       flexDirection: 'row',
@@ -348,7 +350,11 @@ export default function ChangePassword() {
         <Text style={styles.headerTitle}>Change Password</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.formContainer}>
           {/* Current Password */}
           <View style={styles.formGroup}>

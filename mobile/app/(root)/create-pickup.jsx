@@ -10,7 +10,10 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
+    Modal,
+    FlatList,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,15 +24,19 @@ const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://54.209.99.13:500
 
 export default function CreatePickup() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const [loading, setLoading] = useState(false);
     const [image, setImage] = useState(null);
     const [droppingPoints, setDroppingPoints] = useState([]);
-    const [categories, setCategories] = useState([
+    const [categories] = useState([
         'heavy',
         'light',
-        'mixer',
-        'cast'
+        'cast',
+        'mixer'
     ]);
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalType, setModalType] = useState(''); // 'point' or 'category'
 
     // Form state
     const [formData, setFormData] = useState({
@@ -47,14 +54,21 @@ export default function CreatePickup() {
 
     const loadDroppingPoints = async () => {
         try {
-            const response = await fetch(`${API_URL}/api/dropping-point`);
+            const token = await SecureStore.getItemAsync("authToken");
+            const response = await fetch(`${API_URL}/api/dropping-point`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             const result = await response.json();
 
-            if (response.ok && result.data) {
-                // Map API response to component state structure (location_name -> name)
-                const points = result.data.map(point => ({
+            // Handle direct array or nested data structure
+            const data = Array.isArray(result) ? result : (result.data || []);
+            
+            if (response.ok) {
+                const points = data.map(point => ({
                     id: point.id,
-                    name: point.location_name,
+                    name: point.location_name || point.name,
                     address: point.address || ''
                 }));
                 setDroppingPoints(points);
@@ -68,19 +82,16 @@ export default function CreatePickup() {
     const pickImage = async () => {
         try {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
             if (status !== 'granted') {
                 Alert.alert('Permission required', 'Please allow access to your photo library');
                 return;
             }
-
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ImagePicker.MediaTypeOptions.Images,
                 allowsEditing: true,
                 aspect: [4, 3],
                 quality: 0.8,
             });
-
             if (!result.canceled) {
                 setImage(result.assets[0].uri);
             }
@@ -93,18 +104,15 @@ export default function CreatePickup() {
     const takePhoto = async () => {
         try {
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
-
             if (status !== 'granted') {
                 Alert.alert('Permission required', 'Please allow camera access');
                 return;
             }
-
             const result = await ImagePicker.launchCameraAsync({
                 allowsEditing: true,
                 aspect: [4, 3],
                 quality: 0.8,
             });
-
             if (!result.canceled) {
                 setImage(result.assets[0].uri);
             }
@@ -151,50 +159,21 @@ export default function CreatePickup() {
     };
 
     const handleSubmit = async () => {
-        // Validate form
-        if (!formData.dropping_point_id) {
-            Alert.alert('Error', 'Please select a dropping point');
-            return;
-        }
-        if (!formData.category) {
-            Alert.alert('Error', 'Please select a category');
-            return;
-        }
-        if (!formData.price || parseFloat(formData.price) <= 0) {
-            Alert.alert('Error', 'Please enter a valid price');
-            return;
-        }
-        if (!formData.phone_number || formData.phone_number.length < 10) {
-            Alert.alert('Error', 'Please enter a valid phone number');
-            return;
-        }
-        if (!formData.quantity || parseInt(formData.quantity) <= 0) {
-            Alert.alert('Error', 'Please enter a valid quantity');
-            return;
-        }
-        if (!image) {
-            Alert.alert('Error', 'Please add a photo of the waste');
-            return;
-        }
+        if (!formData.dropping_point_id) { Alert.alert('Error', 'Please select a dropping point'); return; }
+        if (!formData.category) { Alert.alert('Error', 'Please select a category'); return; }
+        if (!formData.price) { Alert.alert('Error', 'Please enter a valid price'); return; }
+        if (!formData.phone_number) { Alert.alert('Error', 'Please enter a valid phone number'); return; }
+        if (!formData.quantity) { Alert.alert('Error', 'Please enter a valid quantity'); return; }
+        if (!image) { Alert.alert('Error', 'Please add a photo'); return; }
 
         setLoading(true);
-
         try {
-            // 1. Upload image
             const imageFilename = await uploadImage(image);
-            if (!imageFilename) {
-                throw new Error('Failed to upload image');
-            }
+            if (!imageFilename) throw new Error('Failed to upload image');
 
-            // 2. Get vendor_id from secure store
             const vendor_id = await SecureStore.getItemAsync('userId');
             const token = await SecureStore.getItemAsync('authToken');
 
-            if (!vendor_id || !token) {
-                throw new Error('User not authenticated');
-            }
-
-            // 3. Prepare pickup order data
             const pickupData = {
                 vendor_id,
                 dropping_point_id: parseInt(formData.dropping_point_id),
@@ -206,9 +185,6 @@ export default function CreatePickup() {
                 image: imageFilename,
             };
 
-            console.log('Submitting pickup order:', pickupData);
-
-            // 4. Submit to API
             const response = await fetch(`${API_URL}/api/pickup-order`, {
                 method: 'POST',
                 headers: {
@@ -218,27 +194,14 @@ export default function CreatePickup() {
                 body: JSON.stringify(pickupData),
             });
 
-            const result = await response.json();
-
             if (response.ok) {
-                Alert.alert(
-                    'Success',
-                    'Pickup order created successfully!',
-                    [
-                        {
-                            text: 'OK',
-                            onPress: () => {
-                                router.replace('/');
-                            },
-                        },
-                    ]
-                );
+                Alert.alert('Success', 'Pickup order created successfully!', [{ text: 'OK', onPress: () => router.replace('/') }]);
             } else {
-                throw new Error(result.message || 'Failed to create pickup order');
+                const res = await response.json();
+                throw new Error(res.message || 'Failed to create order');
             }
         } catch (error) {
-            console.error('Error creating pickup order:', error);
-            Alert.alert('Error', error.message || 'Failed to create pickup order. Please try again.');
+            Alert.alert('Error', error.message);
         } finally {
             setLoading(false);
         }
@@ -251,7 +214,7 @@ export default function CreatePickup() {
         },
         header: {
             backgroundColor: '#4CAF50',
-            paddingTop: 60,
+            paddingTop: insets.top + 10,
             paddingBottom: 20,
             paddingHorizontal: 20,
             flexDirection: 'row',
@@ -306,6 +269,9 @@ export default function CreatePickup() {
             borderColor: '#ddd',
             borderRadius: 8,
             padding: 12,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
         },
         pickerText: {
             fontSize: 16,
@@ -401,14 +367,53 @@ export default function CreatePickup() {
             shadowRadius: 4,
             elevation: 5,
         },
-        dropdownItem: {
-            padding: 12,
-            borderBottomWidth: 1,
-            borderBottomColor: '#f0f0f0',
-        },
         dropdownItemText: {
             fontSize: 16,
             color: '#333',
+        },
+        modalOverlay: {
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'flex-end',
+        },
+        modalContent: {
+            backgroundColor: '#FFF',
+            borderTopLeftRadius: 25,
+            borderTopRightRadius: 25,
+            padding: 20,
+            maxHeight: '80%',
+        },
+        modalHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 20,
+            paddingBottom: 15,
+            borderBottomWidth: 1,
+            borderBottomColor: '#eee',
+        },
+        modalTitle: {
+            fontSize: 20,
+            fontWeight: 'bold',
+            color: '#333',
+        },
+        modalItem: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingVertical: 15,
+            borderBottomWidth: 1,
+            borderBottomColor: '#f9f9f9',
+        },
+        modalItemLabel: {
+            fontSize: 16,
+            fontWeight: '600',
+            color: '#333',
+        },
+        modalItemSubLabel: {
+            fontSize: 13,
+            color: '#888',
+            marginTop: 2,
         },
     };
 
@@ -428,7 +433,61 @@ export default function CreatePickup() {
                 <View style={{ width: 24 }} />
             </View>
 
-            <ScrollView style={styles.content}>
+            <Modal
+                visible={modalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <TouchableOpacity 
+                    style={styles.modalOverlay} 
+                    activeOpacity={1} 
+                    onPress={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Select {modalType === 'point' ? 'Location' : 'Category'}</Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Ionicons name="close" size={24} color="#333" />
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={modalType === 'point' ? droppingPoints : categories}
+                            keyExtractor={(item) => typeof item === 'string' ? item : item.id.toString()}
+                            renderItem={({ item }) => {
+                                const isString = typeof item === 'string';
+                                const label = isString ? item.charAt(0).toUpperCase() + item.slice(1) : item.name;
+                                const subLabel = isString ? '' : item.address;
+                                
+                                return (
+                                    <TouchableOpacity 
+                                        style={styles.modalItem}
+                                        onPress={() => {
+                                            if (modalType === 'point') {
+                                                handleInputChange('dropping_point_id', item.id.toString());
+                                            } else {
+                                                handleInputChange('category', item);
+                                            }
+                                            setModalVisible(false);
+                                        }}
+                                    >
+                                        <View>
+                                            <Text style={styles.modalItemLabel}>{label}</Text>
+                                            {subLabel ? <Text style={styles.modalItemSubLabel}>{subLabel}</Text> : null}
+                                        </View>
+                                        <Ionicons name="chevron-forward" size={18} color="#999" />
+                                    </TouchableOpacity>
+                                );
+                            }}
+                        />
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            <ScrollView 
+                style={styles.content}
+                contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+            >
                 <View style={styles.formContainer}>
                     {/* Dropping Point Selection */}
                     <View style={styles.formGroup}>
@@ -439,14 +498,8 @@ export default function CreatePickup() {
                             <TouchableOpacity
                                 style={styles.picker}
                                 onPress={() => {
-                                    Alert.alert(
-                                        'Select Dropping Point',
-                                        'Choose a location:',
-                                        droppingPoints.map(point => ({
-                                            text: `${point.name} - ${point.address}`,
-                                            onPress: () => handleInputChange('dropping_point_id', point.id.toString()),
-                                        })).concat([{ text: 'Cancel', style: 'cancel' }])
-                                    );
+                                    setModalType('point');
+                                    setModalVisible(true);
                                 }}
                             >
                                 <Text style={
@@ -459,6 +512,7 @@ export default function CreatePickup() {
                                         : 'Select dropping point'
                                     }
                                 </Text>
+                                <Ionicons name="chevron-down" size={20} color="#999" />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -472,14 +526,8 @@ export default function CreatePickup() {
                             <TouchableOpacity
                                 style={styles.picker}
                                 onPress={() => {
-                                    Alert.alert(
-                                        'Select Category',
-                                        'Choose waste category:',
-                                        categories.map(category => ({
-                                            text: category,
-                                            onPress: () => handleInputChange('category', category),
-                                        })).concat([{ text: 'Cancel', style: 'cancel' }])
-                                    );
+                                    setModalType('category');
+                                    setModalVisible(true);
                                 }}
                             >
                                 <Text style={
@@ -487,8 +535,12 @@ export default function CreatePickup() {
                                         ? styles.pickerText
                                         : styles.pickerPlaceholder
                                 }>
-                                    {formData.category || 'Select category'}
+                                    {formData.category 
+                                        ? formData.category.charAt(0).toUpperCase() + formData.category.slice(1) 
+                                        : 'Select category'
+                                    }
                                 </Text>
+                                <Ionicons name="chevron-down" size={20} color="#999" />
                             </TouchableOpacity>
                         </View>
                     </View>

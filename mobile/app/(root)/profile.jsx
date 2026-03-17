@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Constants from 'expo-constants';
 
@@ -18,6 +19,7 @@ const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://54.209.99.13:500
 
 export default function Profile() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const [loading, setLoading] = useState(false);
     const [userData, setUserData] = useState({
         email: '',
@@ -139,7 +141,7 @@ export default function Profile() {
         },
         header: {
             backgroundColor: '#4CAF50',
-            paddingTop: 60,
+            paddingTop: insets.top + 10,
             paddingBottom: 20,
             paddingHorizontal: 20,
         },
@@ -330,7 +332,11 @@ export default function Profile() {
                 </View>
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+                style={styles.content} 
+                contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+                showsVerticalScrollIndicator={false}
+            >
                 {/* User Information */}
                 <View style={styles.profileCard}>
                     <Text style={styles.sectionTitle}>Account Information</Text>

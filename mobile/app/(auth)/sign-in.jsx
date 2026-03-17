@@ -5,12 +5,14 @@ import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { loginUser } from "../../constants/authAPI";
 import { styles } from "../../assets/styles/auth.styles";
 import { COLORS } from "../../constants/colors";
 
 export default function SignIn() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -62,7 +64,7 @@ export default function SignIn() {
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{ flexGrow: 1 }}
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 20 }}
       enableOnAndroid={true}
       extraScrollHeight={20}
       keyboardOpeningTime={0}

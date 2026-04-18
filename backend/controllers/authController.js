@@ -172,8 +172,60 @@ export const changePassword = async (req, res) => {
 };
 
 
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const rows = await sql`
+      SELECT * FROM users WHERE email = ${email} LIMIT 1
+    `;
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Email not found" });
+    }
+
+    res.status(200).json({ message: "Reset link sent to your email" });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      return res.status(400).json({ message: "Email and new password are required" });
+    }
+
+    const rows = await sql`
+      SELECT * FROM users WHERE email = ${email} LIMIT 1
+    `;
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const hashedNewPassword = bcrypt.hashSync(newPassword, 10);
+
+    await sql`
+      UPDATE users 
+      SET password = ${hashedNewPassword}
+      WHERE email = ${email}
+    `;
+
+    res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 export default {
   login,
   refreshToken,
-  changePassword
+  changePassword,
+  forgotPassword,
+  resetPassword
 };

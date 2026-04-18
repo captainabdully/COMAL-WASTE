@@ -1,6 +1,6 @@
 // app/(auth)/sign-up.jsx
 import { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View, Image, ActivityIndicator, Alert } from "react-native";
+import { Text, TextInput, TouchableOpacity, View, Image, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { registerUser } from "../../constants/authAPI";
@@ -8,6 +8,7 @@ import { styles } from "../../assets/styles/auth.styles";
 import { COLORS } from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from 'react-native-toast-message';
 
 export default function SignUp() {
   const router = useRouter();
@@ -35,14 +36,22 @@ export default function SignUp() {
 
       // Check if registration was successful
       if (res && (res.message === "User registered" || res.success)) {
-        Alert.alert("Success", "Account created successfully", [
-          { text: "OK", onPress: () => router.replace("/sign-in") }
-        ]);
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Account created successfully',
+        });
+        
+        setTimeout(() => {
+          router.replace("/sign-in");
+        }, 1500);
       } else {
         setError(res.message || "Registration failed");
+        Toast.show({ type: 'error', text1: 'Error', text2: res.message || "Registration failed" });
       }
     } catch (err) {
       setError(err.message || "Server error");
+      Toast.show({ type: 'error', text1: 'Error', text2: err.message || "Server error" });
     } finally {
       setLoading(false);
     }

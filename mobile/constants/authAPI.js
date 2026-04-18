@@ -29,3 +29,23 @@ export const loginUser = async (email, password) => {
     throw error.response?.data || { message: "Network error" };
   }
 };
+
+// FORGOT PASSWORD
+export const forgotPasswordAPI = async (email) => {
+  try {
+    const res = await axios.post(`${API_URL}/forgot-password`, { email });
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || { message: "Network error" };
+  }
+};
+
+// RESET PASSWORD
+export const resetPasswordAPI = async (email, newPassword) => {
+  try {
+    const res = await axios.post(`${API_URL}/reset-password`, { email, newPassword });
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || { message: "Network error" };
+  }
+};

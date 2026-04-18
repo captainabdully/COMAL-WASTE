@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { loginUser } from "../../constants/authAPI";
 import { styles } from "../../assets/styles/auth.styles";
 import { COLORS } from "../../constants/colors";
+import Toast from 'react-native-toast-message';
 
 export default function SignIn() {
   const router = useRouter();
@@ -48,17 +49,27 @@ export default function SignIn() {
 
         if (storedToken) {
           console.log("Navigating to / ...");
+          
+          Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: 'Logged in successfully',
+          });
+          
           router.replace("/");
         } else {
           console.error("Token verification failed");
           setError("Failed to save session");
+          Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to save session' });
         }
       } else {
         setError("Invalid credentials");
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Invalid credentials' });
       }
     } catch (err) {
       console.log("Login error:", err);
       setError(err.message || "Login failed");
+      Toast.show({ type: 'error', text1: 'Error', text2: err.message || 'Login failed' });
     }
   };
 
@@ -105,8 +116,12 @@ export default function SignIn() {
           <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => router.push("/forgot-password")}>
+          <Text style={{ marginTop: 15, color: COLORS.primary, textAlign: 'center' }}>Forgot Password?</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity onPress={() => router.push("/sign-up")}>
-          <Text style={{ marginTop: 20, color: COLORS.primary }}>Don't have an account? Sign Up</Text>
+          <Text style={{ marginTop: 20, color: COLORS.primary, textAlign: 'center' }}>Don't have an account? Sign Up</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>

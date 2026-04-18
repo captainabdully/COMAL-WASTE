@@ -6,7 +6,7 @@
     "android": {
       "versionCode": 10,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo 1.png",
+        "foregroundImage": "./assets/images/APP.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -18,14 +18,14 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/logo 1.png"
+      "favicon": "./assets/images/APP.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/APP.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"

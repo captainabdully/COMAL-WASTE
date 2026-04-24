@@ -28,25 +28,27 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
       const res = await forgotPasswordAPI(email);
-      setLoading(false);
       
+      setLoading(false);
       Toast.show({
         type: 'success',
-        text1: 'Link Sent!',
-        text2: res.message || "Reset link sent to your email",
+        text1: 'Email Verified!',
+        text2: 'Proceeding to reset password...',
       });
-      
+
+      // Navigate directly to the create-new-password page
       setTimeout(() => {
         router.push({ pathname: "/create-new-password", params: { email } });
       }, 1500);
+      
     } catch (err) {
       setLoading(false);
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: err.message || "Failed to send reset link",
+        text2: err.message || "Failed to verify email",
       });
-      setError(err.message || "Failed to send reset link");
+      setError(err.message || "Failed to verify email");
     }
   };
 
@@ -69,7 +71,7 @@ export default function ForgotPassword() {
         <Image source={require("../../assets/images/logo 1.png")} style={styles.illustration} />
         <Text style={styles.title}>Reset Password</Text>
         <Text style={{ marginBottom: 20, textAlign: 'center', color: COLORS.text }}>
-          Enter your email to receive a password reset link
+          Enter your email to verify your account
         </Text>
 
         {error !== "" && (
@@ -88,7 +90,7 @@ export default function ForgotPassword() {
         />
 
         <TouchableOpacity style={styles.button} onPress={onSendLink} disabled={loading}>
-          <Text style={styles.buttonText}>{loading ? "Sending..." : "Send Link"}</Text>
+          <Text style={styles.buttonText}>{loading ? "Verifying..." : "Verify Email"}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>

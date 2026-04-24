@@ -1,10 +1,11 @@
 import axios from "axios";
 
-// export const API_URL = "http://localhost:5001/api/auth";
-// export const API_URL2 = "http://localhost:5001/api";
+//  export const API_URL = "http://localhost:5001/api/auth";
+//  export const API_URL2 = "http://localhost:5001/api";
 
-export const API_URL = "http://54.209.99.13:5001/api/auth";
-export const API_URL2 = "http://54.209.99.13:5001/api";
+ export const API_URL = 'http://54.209.99.13/5001/api/auth';
+ export const API_URL2 = 'http://54.209.99.13/5001/api';
+
 
 // REGISTER USER
 export const registerUser = async (data) => {

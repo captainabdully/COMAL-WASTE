@@ -2,19 +2,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sql } from "../config/db.js";
 import dotenv from "dotenv";
-import nodemailer from "nodemailer";
 
 dotenv.config(); // load environment variables
 
-const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST || "smtppro.zoho.com",
-  port: process.env.MAIL_PORT || 465,
-  secure: true, // true for 465, false for other ports
-  auth: {
-    user: process.env.MAIL_USERNAME,
-    pass: process.env.MAIL_PASSWORD,
-  },
-});
 
 // ===============================
 // USER LOGIN
@@ -193,33 +183,10 @@ export const forgotPassword = async (req, res) => {
     `;
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: "Email not found" });
+      return res.status(404).json({ message: "Email not f" });
     }
 
-    // Send email
-    const resetLink = `skrepachap://create-new-password?email=${encodeURIComponent(email)}`;
-    console.log("Password Reset Link (For Testing):", resetLink);
-    
-    await transporter.sendMail({
-      from: `"${process.env.MAIL_FROM_NAME || 'Skrepa Chap'}" <${process.env.MAIL_FROM_ADDRESS || process.env.MAIL_USERNAME}>`,
-      to: email,
-      subject: "Reset Your Password - Skrepa Chap",
-      text: `You requested a password reset. Click the following link to reset your password: ${resetLink}\n\nIf you didn't request this, you can safely ignore this email.`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #4CAF50;">Skrepa Chap - Password Reset</h2>
-          <p>You requested a password reset. Click the button below to reset your password:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetLink}" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
-          </div>
-          <p>Or copy and paste this link into your browser:</p>
-          <p><a href="${resetLink}">${resetLink}</a></p>
-          <p style="color: #888; font-size: 12px; margin-top: 40px;">If you didn't request this, you can safely ignore this email.</p>
-        </div>
-      `,
-    });
-
-    res.status(200).json({ message: "Reset link sent to your email" });
+    res.status(200).json({ message: "Email verified. Proceed to reset password." });
   } catch (error) {
     console.error("Forgot password error:", error);
     res.status(500).json({ message: "Server error" });

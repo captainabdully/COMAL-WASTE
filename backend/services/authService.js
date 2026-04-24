@@ -56,7 +56,7 @@ class AuthService {
     }
   }
 
-  async changePassword(email, password) {
+  async changePassword(email, currentPassword, newPassword) {
     const [rows] = await sql`
       SELECT * FROM users WHERE email = ${email} LIMIT 1
     `;
@@ -64,7 +64,7 @@ class AuthService {
     const user = rows[0];
     if (!user) return null;
 
-    const match = await bcrypt.compare(password, user.password);
+    const match = await bcrypt.compare(currentPassword, user.password);
     if (!match) return null;
 
     const token = jwt.sign(
@@ -91,6 +91,10 @@ class AuthService {
       }
     };
   }
+
+//  async resetPassword(email){
+    
+//  }
 }
 
 export default new AuthService();

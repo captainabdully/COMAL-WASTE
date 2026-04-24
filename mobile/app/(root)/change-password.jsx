@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-const API_URL = 'http://54.209.99.13:5001';
+// const API_URL = 'http://54.209.99.13:5001';
 
 export default function ChangePassword() {
   const router = useRouter();

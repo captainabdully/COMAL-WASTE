@@ -146,7 +146,9 @@ export default function CreatePickup() {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    // Do not set Content-Type: multipart/form-data manually in React Native
+                    // It needs the boundary which is automatically added when you don't set it.
+                    'Accept': 'application/json',
                 },
             });
 

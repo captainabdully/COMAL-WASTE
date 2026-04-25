@@ -40,7 +40,7 @@ app.use(cors({
     'http://localhost:8080',
     'http://localhost:5173',
     'http://localhost:3000',
-    'http://54.209.99.13/5001'
+    'http://54.209.99.13:5001'
   ],
   credentials: true
 }));
@@ -55,7 +55,10 @@ app.use('/api/pickup-order', orderRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/setup", setupRoutes);
 app.use("/api/upload", uploadRoutes);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Static files - Ensure absolute path and handle potential errors
+const uploadsPath = path.resolve(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadsPath));
 
 
 

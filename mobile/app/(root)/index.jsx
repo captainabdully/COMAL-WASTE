@@ -358,12 +358,27 @@ export default function PickupRequests() {
     return (
       <View style={pickupStyles.pickupCard}>
         <View style={pickupStyles.pickupHeader}>
-          <Text style={pickupStyles.pickupId}>Order: {item.order_id}</Text>
-          <View style={[pickupStyles.pickupStatus, { backgroundColor: statusStyle.bg }]}>
-            <Text style={{ color: statusStyle.text, textTransform: 'capitalize' }}>
-              {item.status}
-            </Text>
+          <View style={{ flex: 1 }}>
+            <Text style={pickupStyles.pickupId}>Order: {item.order_id}</Text>
+            <View style={[pickupStyles.pickupStatus, { backgroundColor: statusStyle.bg, alignSelf: 'flex-start', marginTop: 5 }]}>
+              <Text style={{ color: statusStyle.text, textTransform: 'capitalize', fontSize: 12 }}>
+                {item.status}
+              </Text>
+            </View>
           </View>
+          {item.image && (
+            <Image
+              source={{ 
+                uri: item.image.startsWith('http') 
+                  ? item.image 
+                  : item.image.startsWith('/') 
+                    ? `${API_URL}${item.image}`
+                    : `${API_URL}/uploads/${item.image}`
+              }}
+              style={{ width: 60, height: 60, borderRadius: 10, marginLeft: 10 }}
+              resizeMode="cover"
+            />
+          )}
         </View>
 
         <View style={pickupStyles.pickupDetails}>

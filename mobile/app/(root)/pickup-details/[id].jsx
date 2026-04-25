@@ -179,11 +179,18 @@ export default function PickupDetails() {
                 {order.image && (
                     <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 15, padding: 10, shadowOpacity: 0.1, elevation: 3 }}>
                         <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, marginLeft: 10 }}>Waste Photo</Text>
-                        {/* If image is a filename, prepend API_URL/uploads/, else assume full URL if needed */}
                         <Image
-                            source={{ uri: order.image.startsWith('http') ? order.image : `${API_URL}/uploads/${order.image}` }}
+                            source={{ 
+                                uri: order.image.startsWith('http') 
+                                    ? order.image 
+                                    : order.image.startsWith('/') 
+                                        ? `${API_URL}${order.image}`
+                                        : `${API_URL}/uploads/${order.image}`
+                            }}
                             style={{ width: '100%', height: 300, borderRadius: 10 }}
                             resizeMode="cover"
+                            onLoadStart={() => console.log('Loading image:', order.image)}
+                            onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
                         />
                     </View>
                 )}

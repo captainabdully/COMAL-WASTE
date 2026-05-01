@@ -34,21 +34,15 @@ export default function SignUp() {
     try {
       const res = await registerUser({ name, email, phone_number: phone, address, password });
 
-      // Check if registration was successful
-      if (res && (res.message === "User registered" || res.success)) {
-        Toast.show({
-          type: 'success',
-          text1: 'Success',
-          text2: 'Account created successfully',
-        });
-        
-        setTimeout(() => {
-          router.replace("/sign-in");
-        }, 1500);
-      } else {
-        setError(res.message || "Registration failed");
-        Toast.show({ type: 'error', text1: 'Error', text2: res.message || "Registration failed" });
-      }
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Account created successfully',
+      });
+      
+      setTimeout(() => {
+        router.replace("/sign-in");
+      }, 1500);
     } catch (err) {
       setError(err.message || "Server error");
       Toast.show({ type: 'error', text1: 'Error', text2: err.message || "Server error" });

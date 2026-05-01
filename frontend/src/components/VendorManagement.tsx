@@ -4,7 +4,8 @@ import { StatusBadge } from './StatusBadge';
 import axios from 'axios';
  import { useAuth } from '../contexts/AuthContext';
 
-const API_URL = 'http://localhost:5001/api';
+// const API_URL = 'http://localhost:5001/api';
+const API_URL = 'http://54.209.99.13:5001/api';
 
 export const VendorManagement: React.FC = () => {
   const { token } = useAuth();

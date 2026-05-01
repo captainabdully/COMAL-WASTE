@@ -183,7 +183,7 @@ export const forgotPassword = async (req, res) => {
     `;
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: "Email not f" });
+      return res.status(404).json({ message: "Email not found" });
     }
 
     res.status(200).json({ message: "Email verified. Proceed to reset password." });

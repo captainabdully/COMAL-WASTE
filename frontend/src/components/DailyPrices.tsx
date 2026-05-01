@@ -3,13 +3,19 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { DataTable } from './DataTable';
 
-const API_URL_CREATE = 'http://localhost:5001/api/daily-price';
+// const API_URL_CREATE = 'http://localhost:5001/api/daily-price';
+const API_URL_CREATE = 'http://54.209.99.13:5001/api/daily-price';
 
-const API_URL_DELETE = 'http://localhost:5001/api/daily-price';
+// const API_URL_DELETE = 'http://localhost:5001/api/daily-price';
+const API_URL_DELETE = 'http://54.209.99.13:5001/api/daily-price';
 // specific endpoint to fetch today's prices
-const API_URL_LAST_7_DAYS = 'http://localhost:5001/api/daily-price/last-7-days';
+// const API_URL_LAST_7_DAYS = 'http://localhost:5001/api/daily-price/last-7-days';
+const API_URL_LAST_7_DAYS = 'http://54.209.99.13:5001/api/daily-price/last-7-days';
+
 // specific endpoint to fetch dropping points
-const API_URL_DROPPING_POINTS = 'http://localhost:5001/api/dropping-point';
+// const API_URL_DROPPING_POINTS = 'http://localhost:5001/api/dropping-point';
+const API_URL_DROPPING_POINTS = 'http://54.209.99.13:5001/api/dropping-point';
+
 
 interface DailyPrice {
     id?: number;

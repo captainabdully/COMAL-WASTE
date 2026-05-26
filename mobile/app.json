@@ -1,67 +1,75 @@
 {
   "expo": {
     "name": "skrepachap",
+    "icon": "./assets/images/playstore.png",
     "slug": "skrepachap",
-    "version": "1.0.1",
-    "android": {
-      "versionCode": 10,
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/APP.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "com.countrymaterialslimited.skrepachap",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/APP.png"
-    },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/APP.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      "expo-secure-store",
-      "expo-web-browser",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "usesCleartextTraffic": true,
-            "enableProguardInReleaseBuilds": true,
-            "enableShrinkResourcesInReleaseBuilds": true
-          }
-        }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "The app accesses your photos to let you upload waste images.",
-          "cameraPermission": "The app accesses your camera to let you take waste images."
-        }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    },
+    "version": "1.0.2",
     "extra": {
-      "router": {},
       "eas": {
         "projectId": "bd56f76c-681d-4174-9d9c-69c0b4857d58"
       }
-    },
-    "ios": {
-      "bundleIdentifier": "com.countrymaterialslimited.skrepachap"
     }
+  },
+  "web": {
+    "bundler": "metro",
+    "output": "static",
+    "favicon": "./assets/images/playstore.png"
+  },
+  "plugins": [
+    "expo-router",
+    [
+      "expo-splash-screen",
+      {
+        "image": "./assets/images/playstore.png",
+        "imageWidth": 200,
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
+      }
+    ],
+    "expo-secure-store",
+    "expo-web-browser",
+    [
+      "expo-build-properties",
+      {
+        "android": {
+          "usesCleartextTraffic": true,
+          "enableProguardInReleaseBuilds": true,
+          "enableShrinkResourcesInReleaseBuilds": true
+        }
+      }
+    ],
+    [
+      "expo-image-picker",
+      {
+        "photosPermission": "The app accesses your photos to let you upload waste images.",
+        "cameraPermission": "The app accesses your camera to let you take waste images."
+      }
+    ]
+  ],
+  "experiments": {
+    "typedRoutes": true
+  },
+  "extra": {
+    "router": {},
+    "eas": {
+      "projectId": "bd56f76c-681d-4174-9d9c-69c0b4857d58"
+    }
+  },
+  "android": {
+    "versionCode": 10,
+    "icon": "./assets/images/playstore.png",
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/images/playstore.png",
+      "backgroundColor": "#ffffff"
+    },
+    "edgeToEdgeEnabled": true,
+    "package": "com.countrymaterialslimited.skrepachap",
+    "permissions": [
+      "android.permission.RECORD_AUDIO"
+    ]
+  },
+  "ios": {
+    "bundleIdentifier": "com.countrymaterialslimited.skrepachap",
+    "icon": "./assets/images/playstore.png"
   }
 }

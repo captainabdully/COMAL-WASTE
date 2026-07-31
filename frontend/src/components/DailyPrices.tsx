@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { DataTable } from './DataTable';
-
-// const API_URL_CREATE = 'http://localhost:5001/api/daily-price';
-const API_URL_CREATE = 'http://54.209.99.13:5001/api/daily-price';
-
-// const API_URL_DELETE = 'http://localhost:5001/api/daily-price';
-const API_URL_DELETE = 'http://54.209.99.13:5001/api/daily-price';
-// specific endpoint to fetch today's prices
-// const API_URL_LAST_7_DAYS = 'http://localhost:5001/api/daily-price/last-7-days';
-const API_URL_LAST_7_DAYS = 'http://54.209.99.13:5001/api/daily-price/last-7-days';
-
-// specific endpoint to fetch dropping points
-// const API_URL_DROPPING_POINTS = 'http://localhost:5001/api/dropping-point';
-const API_URL_DROPPING_POINTS = 'http://54.209.99.13:5001/api/dropping-point';
+import { api } from '../lib/api';
+import { confirmAction, showError, showSuccess } from '../lib/alerts';
 
 
 interface DailyPrice {
@@ -54,9 +42,7 @@ export const DailyPrices: React.FC = () => {
     const fetchDroppingPoints = async () => {
         try {
             // Attempt to fetch dropping points.
-            const res = await axios.get(API_URL_DROPPING_POINTS, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/dropping-point');
 
             const rawPoints = Array.isArray(res.data) ? res.data : (res.data.data || []);
             const points = rawPoints.map((p: any) => ({
@@ -67,16 +53,14 @@ export const DailyPrices: React.FC = () => {
             setDroppingPoints(points);
         } catch (error) {
             console.warn("Could not fetch dropping points:", error);
+            await showError('Could not load dropping points', error);
         }
     };
 
     const fetchPrices = async () => {
         try {
             setIsLoading(true);
-            const res = await axios.get(API_URL_LAST_7_DAYS, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            console.log('Last 7 Days Prices Response:', res.data); // Debugging
+            const res = await api.get('/daily-price/last-7-days');
 
             let data: DailyPrice[] = [];
             if (Array.isArray(res.data)) {
@@ -90,6 +74,7 @@ export const DailyPrices: React.FC = () => {
             setPrices(data);
         } catch (error) {
             console.error("Error fetching last 7 days prices:", error);
+            await showError('Could not load prices', error);
         } finally {
             setIsLoading(false);
         }
@@ -103,35 +88,29 @@ export const DailyPrices: React.FC = () => {
             if (isEditing && currentPrice.id) {
                 // Assuming update uses base URL or specific ID URL. For now using base.
                 // If API supports PUT /api/daily-price/:id
-                await axios.post(API_URL_CREATE, payload, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.post('/daily-price', payload);
             } else {
-                await axios.post(API_URL_CREATE, payload, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.post('/daily-price', payload);
             }
-            alert("Price saved successfully");
+            await showSuccess('Price saved successfully');
             setShowModal(false);
             fetchPrices();
             resetForm();
-        } catch (error: any) {
+        } catch (error) {
             console.error("Error saving price:", error);
-            alert(error.response?.data?.message || "Failed to save price");
+            await showError('Could not save price', error);
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (!window.confirm("Are you sure you want to delete this price?")) return;
+        if (!(await confirmAction('Delete this price?', 'This action cannot be undone.'))) return;
         try {
-            await axios.delete(`${API_URL_DELETE}/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            alert("Price deleted successfully");
+            await api.delete(`/daily-price/${id}`);
+            await showSuccess('Price deleted successfully');
             fetchPrices();
-        } catch (error: any) {
+        } catch (error) {
             console.error("Error deleting price:", error);
-            alert(error.response?.data?.message || "Failed to delete price");
+            await showError('Could not delete price', error);
         }
     };
 

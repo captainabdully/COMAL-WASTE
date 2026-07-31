@@ -6,7 +6,10 @@ export const authMiddleware = (req, res, next) => {
   if (!authHeader)
     return res.status(401).json({ message: "Unauthorized: No token" });
 
-  const token = authHeader.split(" ")[1];
+  const [scheme, token] = authHeader.split(" ");
+  if (scheme !== "Bearer" || !token) {
+    return res.status(401).json({ message: "Unauthorized: invalid authorization header" });
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

@@ -8,8 +8,8 @@ const router = express.Router();
 router.post('/', authMiddleware, allowRoles("vendor"), orderController.createPickupOrder);
 router.get('/', authMiddleware, allowRoles("admin", "manager"), orderController.getAllOrders);
 router.get('/:vendor_id', authMiddleware, allowRoles("admin", "manager", "vendor"), orderController.getVendorOrders);
-router.put('/:id/status', authMiddleware, allowRoles("admin", "manager", "vendor"), orderController.updateOrderStatus);
-router.post('/completion', authMiddleware, allowRoles("admin", "manager", "vendor"), orderController.recordOrderCompletion);
+router.put('/:id/status', authMiddleware, allowRoles("admin", "manager"), orderController.updateOrderStatus);
+router.post('/completion', authMiddleware, allowRoles("admin", "manager"), orderController.recordOrderCompletion);
 router.get('/order/:id', authMiddleware, allowRoles("admin", "manager", "vendor"), orderController.getOrderById);
 router.get('/history/', authMiddleware, allowRoles("admin", "manager"), orderController.getOrderHistory);
 

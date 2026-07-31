@@ -18,9 +18,7 @@ import { useState, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
-import Constants from "expo-constants";
-
-const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://54.209.99.13:5001';
+import { API_URL } from "../../constants/api";
 
 export default function CreatePickup() {
     const router = useRouter();

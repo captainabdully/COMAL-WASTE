@@ -1,5 +1,5 @@
 // app/(auth)/create-new-password.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Text, TextInput, TouchableOpacity, View, Image } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -12,7 +12,7 @@ import Toast from 'react-native-toast-message';
 
 export default function CreateNewPassword() {
   const router = useRouter();
-  const { email } = useLocalSearchParams();
+  const { email, token } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   
   const [password, setPassword] = useState("");
@@ -23,8 +23,20 @@ export default function CreateNewPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  useEffect(() => {
+    // Validate that we have the required token
+    if (!token) {
+      setError("Invalid or expired reset link. Please request a new one.");
+    }
+  }, [token]);
+
   const onResetPassword = async () => {
     setError("");
+
+    if (!token) {
+      setError("Invalid reset token. Please request a new password reset.");
+      return;
+    }
 
     if (!password || !confirmPassword) {
       setError("Both fields are required");
@@ -36,9 +48,14 @@ export default function CreateNewPassword() {
       return;
     }
 
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+
     try {
       setLoading(true);
-      const res = await resetPasswordAPI(email, password);
+      const res = await resetPasswordAPI(email, password, token);
       setLoading(false);
       
       Toast.show({
@@ -61,6 +78,28 @@ export default function CreateNewPassword() {
       setError(err.message || "Failed to reset password");
     }
   };
+
+  if (!token) {
+    return (
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 20 }}
+      >
+        <View style={styles.container}>
+          <Ionicons name="alert-circle" size={64} color={COLORS.expense} />
+          <Text style={styles.title}>Invalid Link</Text>
+          <Text style={{ marginBottom: 20, textAlign: 'center', color: COLORS.text }}>
+            The password reset link is invalid or has expired.
+          </Text>
+          <TouchableOpacity 
+            style={styles.button}
+            onPress={() => router.push("/forgot-password")}
+          >
+            <Text style={styles.buttonText}>Request New Link</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAwareScrollView>
+    );
+  }
 
   return (
     <KeyboardAwareScrollView
@@ -90,6 +129,7 @@ export default function CreateNewPassword() {
             secureTextEntry={!showPassword}
             placeholder="New password"
             onChangeText={setPassword}
+            value={password}
           />
           <TouchableOpacity
             style={styles.eyeIcon}
@@ -109,6 +149,7 @@ export default function CreateNewPassword() {
             secureTextEntry={!showConfirmPassword}
             placeholder="Re-type password"
             onChangeText={setConfirmPassword}
+            value={confirmPassword}
           />
           <TouchableOpacity
             style={styles.eyeIcon}

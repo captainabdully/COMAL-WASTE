@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sql } from "../config/db.js";
+import { sendPasswordResetEmail, sendConfirmationEmail } from "../config/email.js";
+import crypto from "crypto";
 import dotenv from "dotenv";
 
 dotenv.config(); // load environment variables
@@ -132,8 +134,13 @@ export const changePassword = async (req, res) => {
     const { user_id } = req.params;
     const { currentPassword, newPassword } = req.body;
 
-    if (!user_id || !currentPassword || !newPassword) {
-      return res.status(400).json({ message: "All fields are required" });
+    const isPrivileged = req.user.roles?.some((role) => ["admin", "manager"].includes(role));
+    if (!isPrivileged && req.user.user_id !== user_id) {
+      return res.status(403).json({ message: "Forbidden: you can only change your own password" });
+    }
+
+    if (!user_id || !currentPassword || !newPassword || newPassword.length < 8) {
+      return res.status(400).json({ message: "Current password and a new password of at least 8 characters are required" });
     }
 
     // 1. Fetch user to check existence
@@ -148,14 +155,14 @@ export const changePassword = async (req, res) => {
     const user = rows[0];
 
     // 2. Verify current password
-    const isMatch = bcrypt.compareSync(currentPassword, user.password);
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
 
     if (!isMatch) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
 
     // 3. Hash new password
-    const hashedNewInfo = bcrypt.hashSync(newPassword, 10);
+    const hashedNewInfo = await bcrypt.hash(newPassword, 12);
 
     // 4. Update password in DB
     await sql`
@@ -178,48 +185,164 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
 
+    // Check if user exists
     const rows = await sql`
       SELECT * FROM users WHERE email = ${email} LIMIT 1
     `;
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: "Email not found" });
+      return res.status(200).json({ message: "If the email exists, a password reset link has been sent." });
     }
 
-    res.status(200).json({ message: "Email verified. Proceed to reset password." });
+    const user = rows[0];
+    console.log("✓ User found:", user.email);
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    
+    // Token expires in 1 hour
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    // Store token in database
+    try {
+      console.log("📝 Storing reset token in database...");
+      
+      await sql`
+        DELETE FROM password_reset_tokens WHERE email = ${email}
+      `;
+      
+      await sql`
+        INSERT INTO password_reset_tokens (user_id, email, reset_token, expires_at)
+        VALUES (${user.user_id}, ${email}, ${hashedToken}, ${expiresAt})
+      `;
+      
+      console.log("✓ Token stored successfully");
+    } catch (dbError) {
+      console.error("❌ Database error storing reset token:", dbError);
+      return res.status(500).json({ message: "Failed to generate reset token: " + dbError.message });
+    }
+
+    const resetBaseUrl = process.env.PASSWORD_RESET_URL;
+    if (!resetBaseUrl) {
+      console.error("PASSWORD_RESET_URL is not configured");
+      return res.status(503).json({ message: "Password reset is temporarily unavailable" });
+    }
+    const resetLink = `${resetBaseUrl}?token=${resetToken}&email=${encodeURIComponent(email)}`;
+    
+    // Send email
+    console.log("📧 Sending password reset email to:", email);
+    const emailSent = await sendPasswordResetEmail(email, resetToken, resetLink);
+    
+    if (!emailSent) {
+      console.error("❌ Failed to send email");
+      return res.status(500).json({ message: "Failed to send reset email. Please try again." });
+    }
+
+    console.log("✓ Password reset email sent successfully");
+
+    res.status(200).json({ message: "If the email exists, a password reset link has been sent." });
+
   } catch (error) {
-    console.error("Forgot password error:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Forgot password error:", error);
+    res.status(500).json({ message: "Server error: " + error.message });
   }
 };
 
 export const resetPassword = async (req, res) => {
   try {
-    const { email, newPassword } = req.body;
-    if (!email || !newPassword) {
-      return res.status(400).json({ message: "Email and new password are required" });
+    const { email, newPassword, resetToken } = req.body;
+    
+    if (!email || !newPassword || !resetToken) {
+      return res.status(400).json({ message: "Email, password, and reset token are required" });
     }
 
-    const rows = await sql`
+    // Hash the provided token to match what's in the database
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+    // Check if token exists and is valid
+    const tokenRows = await sql`
+      SELECT * FROM password_reset_tokens 
+      WHERE email = ${email} AND reset_token = ${hashedToken} LIMIT 1
+    `;
+
+    if (tokenRows.length === 0) {
+      return res.status(400).json({ message: "Invalid or expired reset token" });
+    }
+
+    const tokenRecord = tokenRows[0];
+
+    // Check if token has expired
+    if (new Date() > new Date(tokenRecord.expires_at)) {
+      // Delete the expired token
+      await sql`DELETE FROM password_reset_tokens WHERE id = ${tokenRecord.id}`;
+      return res.status(400).json({ message: "Reset token has expired" });
+    }
+
+    // Verify user exists
+    const userRows = await sql`
       SELECT * FROM users WHERE email = ${email} LIMIT 1
     `;
 
-    if (rows.length === 0) {
+    if (userRows.length === 0) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    const user = userRows[0];
+
+    // Hash new password
     const hashedNewPassword = bcrypt.hashSync(newPassword, 10);
 
+    // Update password
     await sql`
       UPDATE users 
       SET password = ${hashedNewPassword}
       WHERE email = ${email}
     `;
 
+    // Delete the used token
+    await sql`DELETE FROM password_reset_tokens WHERE id = ${tokenRecord.id}`;
+
+    // Send confirmation email
+    await sendConfirmationEmail(email, user.name);
+
     res.status(200).json({ message: "Password reset successfully" });
+
   } catch (error) {
     console.error("Reset password error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Test email configuration endpoint
+export const testEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    console.log("🧪 Testing email configuration for:", email);
+
+    const testLink = "https://example.com/reset-password?token=test123";
+    const result = await sendPasswordResetEmail(email, "test_token", testLink);
+
+    if (result) {
+      res.status(200).json({ 
+        message: "✓ Test email sent successfully",
+        email: email
+      });
+    } else {
+      res.status(500).json({ 
+        message: "✗ Failed to send test email - check backend logs for details"
+      });
+    }
+  } catch (error) {
+    console.error("❌ Test email error:", error);
+    res.status(500).json({ 
+      message: "Test email error: " + error.message 
+    });
   }
 };
 
@@ -228,5 +351,6 @@ export default {
   refreshToken,
   changePassword,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  testEmail
 };

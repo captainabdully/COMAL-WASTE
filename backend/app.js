@@ -16,6 +16,7 @@ import setupRoutes from "./routes/setupRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { apiLimiter, authLimiter } from './middleware/rateLimiter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,22 +27,16 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+if (process.env.TRUST_PROXY === 'true') app.set('trust proxy', 1);
+
 // Initialize database
 await initDB();
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+app.use(apiLimiter);
 app.use(cors({
-  origin: [
-    'http://localhost:8081',
-    'exp://localhost:8081',
-    'http://192.168.1.11:8081',
-    'exp://192.168.1.11:8081',
-    'http://localhost:8080',
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://54.209.99.13:5001'
-  ],
+  origin: (process.env.APP_ORIGINS || 'http://localhost:8080,http://localhost:5173').split(','),
   credentials: true
 }));
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -52,7 +47,7 @@ app.use('/api/user-roles', roleRoutes);
 app.use('/api/dropping-point', droppingPointRoutes);
 app.use('/api/daily-price', priceRoutes);
 app.use('/api/pickup-order', orderRoutes);
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/setup", setupRoutes);
 app.use("/api/upload", uploadRoutes);
 
@@ -65,7 +60,18 @@ app.use('/uploads', express.static(uploadsPath));
 
 // Root route
 app.get('/', (req, res) => {
-  res.send("Developing a backend server for country data");
+  res.json({ status: 'ok' });
+});
+
+app.use((err, _req, res, _next) => {
+  if (err instanceof SyntaxError && 'body' in err) {
+    return res.status(400).json({ message: 'Invalid JSON request body' });
+  }
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ message: 'Image must be 5 MB or smaller' });
+  }
+  console.error('Unhandled request error:', err);
+  return res.status(500).json({ message: 'Internal server error' });
 });
 
 app.listen(PORT, () => {

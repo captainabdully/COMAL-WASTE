@@ -1,6 +1,7 @@
 export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
-    if (!allowedRoles.includes(req.user.role)) {
+    const roles = req.user?.roles || (req.user?.role ? [req.user.role] : []);
+    if (!roles.some((role) => allowedRoles.includes(role))) {
       return res.status(403).json({
         message: "Forbidden: You do not have permission"
       });
@@ -20,7 +21,7 @@ export const authorizeRoles = (...allowedRoles) => {
 
 export const allowRoles = (...allowed) => {
   return (req, res, next) => {
-    const userRoles = req.user.roles.map(r => r.toLowerCase());
+    const userRoles = (req.user?.roles || (req.user?.role ? [req.user.role] : [])).map(r => r.toLowerCase());
 
     const allowedLower = allowed.map(r => r.toLowerCase());
 

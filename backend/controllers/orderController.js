@@ -3,13 +3,22 @@ import orderService from '../services/orderService.js';
 class OrderController {
   async createPickupOrder(req, res) {
     try {
-      const { vendor_id, dropping_point_id, category, price, phone_number, quantity, comment, image } = req.body;
+      const { dropping_point_id, category, price, phone_number, quantity, comment, image } = req.body;
 
-      if (!vendor_id || !dropping_point_id || !category || price === undefined || !phone_number || !quantity) {
+      if (!dropping_point_id || !category || price === undefined || !phone_number || !quantity) {
         return res.status(400).json({ message: "All required fields must be provided" });
       }
 
-      await orderService.createPickupOrder(req.body);
+      await orderService.createPickupOrder({
+        vendor_id: req.user.user_id,
+        dropping_point_id,
+        category,
+        price,
+        phone_number,
+        quantity,
+        comment,
+        image
+      });
 
       res.status(201).json({ message: "Pickup order created successfully" });
     } catch (error) {
@@ -21,6 +30,11 @@ class OrderController {
   async getVendorOrders(req, res) {
     try {
       const { vendor_id } = req.params;
+
+      const isPrivileged = req.user.roles?.some((role) => ["admin", "manager"].includes(role));
+      if (!isPrivileged && req.user.user_id !== vendor_id) {
+        return res.status(403).json({ message: "Forbidden: you can only view your own orders" });
+      }
 
       if (!vendor_id) {
         return res.status(400).json({ message: "vendor_id is required" });
@@ -67,7 +81,11 @@ class OrderController {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      let assigned_to = req.body.assigned_to || null;
+      const allowedStatuses = new Set(["assigned", "completed", "cancelled"]);
+      if (!allowedStatuses.has(status)) {
+        return res.status(400).json({ message: "Invalid order status" });
+      }
+      let assigned_to = req.user.user_id;
 
       console.log('Update Status Request:', { id, status, body: req.body, user: req.user });
 
@@ -96,13 +114,13 @@ class OrderController {
 
   async recordOrderCompletion(req, res) {
     try {
-      const { order_id, completed_by, completion_notes } = req.body;
+      const { order_id, completion_notes } = req.body;
 
-      if (!order_id || !completed_by) {
-        return res.status(400).json({ message: "Order ID and completed_by are required" });
+      if (!order_id) {
+        return res.status(400).json({ message: "Order ID is required" });
       }
 
-      await orderService.recordOrderCompletion(req.body);
+      await orderService.recordOrderCompletion({ order_id, completion_notes, completed_by: req.user.user_id });
 
       res.status(201).json({ message: "Order completion recorded successfully" });
     } catch (error) {

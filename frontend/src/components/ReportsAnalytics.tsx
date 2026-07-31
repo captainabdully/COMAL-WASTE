@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { showInfo } from '../lib/alerts';
 
 export const ReportsAnalytics: React.FC = () => {
   const [reportType, setReportType] = useState('scrap-collected');
@@ -12,8 +13,8 @@ export const ReportsAnalytics: React.FC = () => {
     { id: 'tax-compliance', label: 'Tax Compliance (TRA)' }
   ];
 
-  const handleExport = (format: string) => {
-    alert(`Exporting ${reportType} as ${format.toUpperCase()}...`);
+  const handleExport = async (format: string) => {
+    await showInfo('Export not available', `${reportType} export as ${format.toUpperCase()} needs a backend export endpoint.`);
   };
 
   return (

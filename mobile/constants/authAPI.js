@@ -1,16 +1,20 @@
 import axios from "axios";
+import { API_BASE_URL } from "./api";
 
 //  export const API_URL = "http://localhost:5001/api/auth";
 //  export const API_URL2 = "http://localhost:5001/api";
 
- export const API_URL = 'http://54.209.99.13:5001/api/auth';
- export const API_URL2 = 'http://54.209.99.13:5001/api';
+ export const API_URL = `${API_BASE_URL}/auth`;
+ // to remember to EDIT API_URL2 for user management
+//  export const API_URL2 = API_BASE_URL;
 
 
 // REGISTER USER
 export const registerUser = async (data) => {
   try {
-    const res = await axios.post(`${API_URL2}/users`, data);
+    const res = await axios.post(`${API_URL}/users`, data);
+    // const res = await axios.post(`${API_URL2}/users`, data);
+
     return res.data; // return backend response
   } catch (error) {
     throw error.response?.data || { message: "Network error" };
@@ -42,9 +46,9 @@ export const forgotPasswordAPI = async (email) => {
 };
 
 // RESET PASSWORD
-export const resetPasswordAPI = async (email, newPassword) => {
+export const resetPasswordAPI = async (email, newPassword, resetToken) => {
   try {
-    const res = await axios.post(`${API_URL}/reset-password`, { email, newPassword });
+    const res = await axios.post(`${API_URL}/reset-password`, { email, newPassword, resetToken });
     return res.data;
   } catch (error) {
     throw error.response?.data || { message: "Network error" };

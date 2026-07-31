@@ -13,9 +13,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import Constants from 'expo-constants';
-
-const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://54.209.99.13:5001';
+import { API_URL } from '../../constants/api';
 
 export default function Profile() {
     const router = useRouter();

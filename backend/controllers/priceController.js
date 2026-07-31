@@ -3,13 +3,13 @@ import priceService from '../services/priceService.js';
 class PriceController {
   async createDailyPrice(req, res) {
     try {
-      const { dropping_point_id, category, price, created_by } = req.body;
+      const { dropping_point_id, category, price } = req.body;
 
-      if (!dropping_point_id || !category || price === undefined || !created_by) {
+      if (!dropping_point_id || !category || price === undefined) {
         return res.status(400).json({ message: "All fields are required" });
       }
 
-      await priceService.createDailyPrice(req.body);
+      await priceService.createDailyPrice({ dropping_point_id, category, price, created_by: req.user.user_id });
 
       res.status(201).json({ message: "Daily price created successfully" });
     } catch (error) {

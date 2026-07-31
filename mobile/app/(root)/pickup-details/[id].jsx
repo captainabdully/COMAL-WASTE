@@ -1,12 +1,10 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { View, Text, ScrollView, Image, ActivityIndicator, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TextInput, ScrollView, Image, ActivityIndicator, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Constants from "expo-constants";
-
-const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://54.209.99.13:5001';
+import { API_URL } from "../../../constants/api";
 
 export default function PickupDetails() {
     const { id } = useLocalSearchParams();
@@ -268,9 +266,6 @@ export default function PickupDetails() {
         </View>
     );
 }
-
-// Add local import for TextInput if not already there
-import { TextInput } from "react-native";
 
 const DetailRow = ({ label, value }) => (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>

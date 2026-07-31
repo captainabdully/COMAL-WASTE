@@ -7,4 +7,10 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*'],
   },
+  {
+    files: ['app/(auth)/terms-and-conditions.jsx'],
+    rules: {
+      'react/no-unescaped-entities': 'off',
+    },
+  },
 ]);

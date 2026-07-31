@@ -8,9 +8,11 @@ import { FinancialOverview } from './FinancialOverview';
 import { ReportsAnalytics } from './ReportsAnalytics';
 import { DailyPrices } from './DailyPrices';
 import { Settings } from './Settings';
+import { useAuth } from '../contexts/AuthContext';
 
 const AppLayout: React.FC = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
+  const { logout } = useAuth();
 
   const renderContent = () => {
     switch (activeSection) {
@@ -49,9 +51,7 @@ const AppLayout: React.FC = () => {
                 <span className="text-2xl">🔔</span>
                 <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"><a href="/login"> Logout!</a>
-
-              </button>
+              <button onClick={logout} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Logout</button>
             </div>
           </div>
         </header>

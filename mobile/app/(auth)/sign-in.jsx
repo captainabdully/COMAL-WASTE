@@ -123,6 +123,12 @@ export default function SignIn() {
         <TouchableOpacity onPress={() => router.push("/sign-up")}>
           <Text style={{ marginTop: 20, color: COLORS.primary, textAlign: 'center' }}>Don't have an account? Sign Up</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push("/terms-and-conditions")}>
+          <Text style={{ marginTop: 20, color: COLORS.primary, textAlign: 'center', fontSize: 12 }}>
+            By Login, I am consent to the Terms and Conditions & Privacy Policy
+          </Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>
   );

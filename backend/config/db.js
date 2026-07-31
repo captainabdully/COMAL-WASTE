@@ -23,6 +23,22 @@ async function initDB() {
   ADD COLUMN IF NOT EXISTS password TEXT;
 `;
 
+    await sql`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS user_category VARCHAR(50);
+    `;
+
+    // Password reset tokens table
+    await sql`CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      id SERIAL PRIMARY KEY,
+      user_id VARCHAR(100) NOT NULL,
+      email VARCHAR(100) NOT NULL,
+      reset_token VARCHAR(255) NOT NULL UNIQUE,
+      expires_at TIMESTAMP NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    )`;
+
     // User roles table
     await sql`CREATE TABLE IF NOT EXISTS user_roles (
       id SERIAL PRIMARY KEY,
@@ -103,6 +119,11 @@ async function initDB() {
       FOREIGN KEY (order_id) REFERENCES pickup_order(id) ON DELETE CASCADE,
       FOREIGN KEY (completed_by) REFERENCES users(user_id)
     )`;
+
+    // Keep the most common application reads responsive as data grows.
+    await sql`CREATE INDEX IF NOT EXISTS pickup_order_vendor_id_idx ON pickup_order (vendor_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS pickup_order_status_created_at_idx ON pickup_order (status, created_at DESC)`;
+    await sql`CREATE INDEX IF NOT EXISTS daily_price_point_date_idx ON daily_price (dropping_point_id, effective_date DESC)`;
 
     console.log("All tables created successfully");
   } catch (error) {

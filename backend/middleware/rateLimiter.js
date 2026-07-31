@@ -1,21 +1,20 @@
-import ratelimit from "../config/upstash.js"; // Fixed import path
+import { rateLimit } from "express-rate-limit";
 
-export const rateLimitMiddleware = async (req, res, next) => {
-  try {
-    const ip = req.ip;
-    const { success } = await ratelimit.limit(ip);
-    
-    if (!success) {
-      return res.status(429).json({ 
-        message: "Too many requests. Please try again later." 
-      });
-    }
-    
-    next();
-  } catch (error) {
-    console.error("Rate limiting error:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
+const baseOptions = {
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { message: "Too many requests. Please try again later." },
 };
 
-export default rateLimitMiddleware; 
+export const apiLimiter = rateLimit({
+  ...baseOptions,
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+});
+
+export const authLimiter = rateLimit({
+  ...baseOptions,
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  message: { message: "Too many authentication attempts. Please try again later." },
+});

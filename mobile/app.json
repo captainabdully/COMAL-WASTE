@@ -1,21 +1,16 @@
 {
   "expo": {
     "name": "skrepachap",
+    "scheme": "comalwaste",
     "icon": "./assets/images/playstore.png",
     "slug": "skrepachap",
     "version": "1.0.2",
-    "extra": {
-      "eas": {
-        "projectId": "bd56f76c-681d-4174-9d9c-69c0b4857d58"
-      }
-    }
-  },
-  "web": {
+    "web": {
     "bundler": "metro",
     "output": "static",
     "favicon": "./assets/images/playstore.png"
-  },
-  "plugins": [
+    },
+    "plugins": [
     "expo-router",
     [
       "expo-splash-screen",
@@ -45,17 +40,17 @@
         "cameraPermission": "The app accesses your camera to let you take waste images."
       }
     ]
-  ],
-  "experiments": {
+    ],
+    "experiments": {
     "typedRoutes": true
-  },
-  "extra": {
+    },
+    "extra": {
     "router": {},
     "eas": {
       "projectId": "bd56f76c-681d-4174-9d9c-69c0b4857d58"
     }
-  },
-  "android": {
+    },
+    "android": {
     "versionCode": 10,
     "icon": "./assets/images/playstore.png",
     "adaptiveIcon": {
@@ -67,9 +62,10 @@
     "permissions": [
       "android.permission.RECORD_AUDIO"
     ]
-  },
-  "ios": {
+    },
+    "ios": {
     "bundleIdentifier": "com.countrymaterialslimited.skrepachap",
     "icon": "./assets/images/playstore.png"
+    }
   }
 }

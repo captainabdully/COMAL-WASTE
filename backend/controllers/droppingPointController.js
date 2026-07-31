@@ -3,8 +3,7 @@ class DroppingPointController {
 
   createDroppingPoint = async (req, res) => {
     try {
-      const { location_name, address, created_by } = req.body;
-      // const created_by = req.user.user_id;
+      const { location_name, address } = req.body;
 
       if (!location_name) {
         return res.status(400).json({ message: "location_name is required" });
@@ -13,7 +12,7 @@ class DroppingPointController {
       const newPoint = await droppingPointService.createDroppingPoint(
         location_name,
         address,
-        created_by
+        req.user.user_id
       );
 
       res.status(201).json({

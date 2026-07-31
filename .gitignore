@@ -1,0 +1,16 @@
+# Dependencies and generated native/build output
+**/node_modules/
+**/.expo/
+**/dist/
+**/build/
+**/Pods/
+
+# Runtime secrets and user uploads
+**/.env
+**/.env.local
+**/.env..
+backend/uploads/
+
+# Local tooling
+.DS_Store
+*.log

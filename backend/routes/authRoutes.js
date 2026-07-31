@@ -33,5 +33,6 @@ router.get(
 // router.post("/login", login);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.resetPassword);
+router.post("/test-email", authMiddleware, authorizeRoles("admin"), authController.testEmail);
 
 export default router;

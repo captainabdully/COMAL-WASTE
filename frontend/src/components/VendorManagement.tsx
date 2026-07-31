@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { DataTable } from './DataTable';
 import { StatusBadge } from './StatusBadge';
-import axios from 'axios';
- import { useAuth } from '../contexts/AuthContext';
-
-// const API_URL = 'http://localhost:5001/api';
-const API_URL = 'http://54.209.99.13:5001/api';
+import { useAuth } from '../contexts/AuthContext';
+import { api } from '../lib/api';
+import { showError, showInfo, showSuccess } from '../lib/alerts';
 
 export const VendorManagement: React.FC = () => {
   const { token } = useAuth();
@@ -19,7 +17,7 @@ export const VendorManagement: React.FC = () => {
     name: '',
     email: '',
     phone_number: '',
-    password: 'password123', // Default password
+    password: '',
     role: 'vendor'
   });
 
@@ -30,9 +28,7 @@ export const VendorManagement: React.FC = () => {
   const fetchVendors = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get(`${API_URL}/users`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/users');
 
       const allUsers = res.data.users || [];
       // Filter for users who have 'vendor' role
@@ -51,6 +47,7 @@ export const VendorManagement: React.FC = () => {
       setVendors(vendorList);
     } catch (error) {
       console.error("Error fetching vendors:", error);
+      await showError('Could not load vendors', error);
     } finally {
       setIsLoading(false);
     }
@@ -59,16 +56,14 @@ export const VendorManagement: React.FC = () => {
   const handleAddVendor = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_URL}/users`, newVendor, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      alert("Vendor added successfully");
+      await api.post('/users', newVendor);
+      await showSuccess('Vendor added successfully');
       setShowModal(false);
       fetchVendors(); // Refresh list
-      setNewVendor({ name: '', email: '', phone_number: '', password: 'password123', role: 'vendor' }); // Reset form
-    } catch (error: any) {
+      setNewVendor({ name: '', email: '', phone_number: '', password: '', role: 'vendor' });
+    } catch (error) {
       console.error("Error adding vendor:", error);
-      alert(error.response?.data?.message || "Failed to add vendor");
+      await showError('Could not add vendor', error);
     }
   };
 
@@ -84,12 +79,12 @@ export const VendorManagement: React.FC = () => {
     }
   ];
 
-  const handleApprove = (vendor: any) => {
-    alert(`Vendor ${vendor.name} approved!`);
+  const handleApprove = async (vendor: any) => {
+    await showInfo('Not available', `Vendor approval for ${vendor.name} is not implemented by the API yet.`);
   };
 
-  const handleReject = (vendor: any) => {
-    alert(`Vendor ${vendor.name} rejected!`);
+  const handleReject = async (vendor: any) => {
+    await showInfo('Not available', `Vendor rejection for ${vendor.name} is not implemented by the API yet.`);
   };
 
   const handleViewDetails = (vendor: any) => {
@@ -177,8 +172,15 @@ export const VendorManagement: React.FC = () => {
                   onChange={(e) => setNewVendor({ ...newVendor, email: e.target.value })}
                   required
                 />
-                {/* Default password note */}
-                <p className="text-sm text-gray-500">Default password: password123</p>
+                <input
+                  type="password"
+                  placeholder="Temporary password (at least 8 characters)"
+                  className="w-full px-4 py-2 border rounded-lg"
+                  value={newVendor.password}
+                  onChange={(e) => setNewVendor({ ...newVendor, password: e.target.value })}
+                  minLength={8}
+                  required
+                />
 
                 <button type="submit" className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
                   Add Vendor

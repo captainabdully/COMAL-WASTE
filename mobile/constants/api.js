@@ -1,4 +1,8 @@
-// export const API_URL = "https://wallet-api-cxqp.onrender.com/api";
-//  export const API_URL = "http://localhost:5001/api";
+const configuredUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
 
- export const API_URL = 'http://54.209.99.13:5001';
+if (!configuredUrl && !__DEV__) {
+  console.warn('EXPO_PUBLIC_API_URL is not configured; network requests will fail.');
+}
+
+export const API_URL = (configuredUrl || 'http:localhost:5001').replace(/\/$/, '');
+export const API_BASE_URL = `${API_URL}/api`;

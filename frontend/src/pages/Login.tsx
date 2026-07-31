@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
-
-// const API_URL = 'http://localhost:5001/api';
-const API_URL = 'http://54.209.99.13:5001/api';
+import { api } from '../lib/api';
+import { showError, showSuccess } from '../lib/alerts';
 
 
 const Login = () => {
@@ -21,7 +19,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post(`${API_URL}/auth/login`, {
+            const res = await api.post('/auth/login', {
                 email,
                 password,
             });
@@ -30,16 +28,25 @@ const Login = () => {
                 // Check for admin or manager role
                 const userRoles = res.data.user.roles || [];
                 if (!userRoles.includes('admin') && !userRoles.includes('manager')) {
-                    setError("Access denied: This portal is for Admins and Managers only.");
+                    const message = "Access denied: This portal is for Admins and Managers only.";
+                    setError(message);
+                    await showError('Access denied', new Error(message));
                     return;
                 }
 
                 login(res.data.token, res.data.user);
+                await showSuccess('Signed in successfully');
                 navigate('/');
+            } else {
+                const message = 'The server did not return a valid session.';
+                setError(message);
+                await showError('Sign in failed', new Error(message));
             }
-        } catch (err: any) {
+        } catch (err) {
             console.error("Login error:", err);
-            setError(err.response?.data?.message || 'Failed to login');
+            const message = err instanceof Error ? err.message : 'Failed to login';
+            setError(message);
+            await showError('Sign in failed', err);
         } finally {
             setLoading(false);
         }

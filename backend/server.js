@@ -5,7 +5,6 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 const swaggerDocument = YAML.load('./swagger.yaml');
 import { isAdmin } from "./middleware/isAdmin.js";
-import rateLimitMiddleware from './config/upstash.js';
 
 
 dotenv.config();

@@ -7,6 +7,15 @@ import { sql } from "../config/db.js";
 ============================================================ */
 export const createAdminSetup = async (req, res) => {
   try {
+    const setupSecret = req.get("x-setup-secret");
+    if (!process.env.BOOTSTRAP_SECRET || setupSecret !== process.env.BOOTSTRAP_SECRET) {
+      return res.status(403).json({ message: "Admin setup is not authorized" });
+    }
+
+    if (!process.env.BOOTSTRAP_ADMIN_EMAIL || !process.env.BOOTSTRAP_ADMIN_PASSWORD) {
+      return res.status(503).json({ message: "Admin bootstrap is not configured" });
+    }
+
     const exists = await sql`
       SELECT * FROM user_roles WHERE user_role = 'admin' LIMIT 1
     `;
@@ -16,11 +25,11 @@ export const createAdminSetup = async (req, res) => {
     }
 
     const adminId = `USR-${Date.now()}`;
-    const hashedPwd = bcrypt.hashSync("Admin@123", 10);
+    const hashedPwd = await bcrypt.hash(process.env.BOOTSTRAP_ADMIN_PASSWORD, 12);
 
     await sql`
       INSERT INTO users (user_id, name, email, phone_number, password, user_category)
-      VALUES (${adminId}, 'System Admin', 'admin@system.com', '0000000000', ${hashedPwd}, 'system')
+      VALUES (${adminId}, 'System Admin', ${process.env.BOOTSTRAP_ADMIN_EMAIL}, '0000000000', ${hashedPwd}, 'system')
     `;
 
     await sql`
@@ -42,7 +51,11 @@ export const createAdminSetup = async (req, res) => {
 ============================================================ */
 export const createUser = async (req, res) => {
   try {
-    const { name, email, phone_number, password, role = "vendor" } = req.body;
+    const { name, email, phone_number, password } = req.body;
+
+    if (!name || !email || !password || password.length < 8) {
+      return res.status(400).json({ message: "Name, email, and a password of at least 8 characters are required" });
+    }
 
     const exists = await sql`
       SELECT * FROM users WHERE email = ${email} LIMIT 1
@@ -52,7 +65,7 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
 
     const userId = `USR-${Date.now()}`;
-    const hashed = bcrypt.hashSync(password, 10);
+    const hashed = await bcrypt.hash(password, 12);
 
     await sql`
       INSERT INTO users (user_id, name, email, phone_number, password)
@@ -61,7 +74,7 @@ export const createUser = async (req, res) => {
 
     await sql`
       INSERT INTO user_roles (user_id, user_role)
-      VALUES (${userId}, ${role})
+      VALUES (${userId}, 'vendor')
     `;
 
     res.status(201).json({
@@ -70,7 +83,7 @@ export const createUser = async (req, res) => {
       name: name,
       email: email,
       phone_number: phone_number,
-      default_role: role,
+      default_role: 'vendor',
     });
 
   } catch (error) {
@@ -120,6 +133,10 @@ export const getAllUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const { user_id } = req.params;
+    const isPrivileged = req.user.roles?.some((role) => ["admin", "manager"].includes(role));
+    if (!isPrivileged && req.user.user_id !== user_id) {
+      return res.status(403).json({ message: "Forbidden: you can only view your own profile" });
+    }
 
     const user = await sql`
       SELECT * FROM users WHERE user_id = ${user_id} LIMIT 1

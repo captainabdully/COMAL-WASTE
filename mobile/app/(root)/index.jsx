@@ -9,9 +9,7 @@ import { styles } from "../../assets/styles/home.styles";
 import { Ionicons } from "@expo/vector-icons";
 
 
-import Constants from "expo-constants";
-
-const API_URL = Constants.expoConfig?.extra?.API_URL || 'http://54.209.99.13:5001';
+import { API_URL } from "../../constants/api";
 // New styles for pickup layout
 // Status colors mapping
 const statusColors = {

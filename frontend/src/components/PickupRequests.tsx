@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { DataTable } from './DataTable';
 import { StatusBadge } from './StatusBadge';
-import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
-
-// const API_URL = 'http://localhost:5001/api';
-const API_URL = 'http://54.209.99.13:5001/api';
+import { api } from '../lib/api';
+import { showError, showSuccess } from '../lib/alerts';
 
 
 export const PickupRequests: React.FC = () => {
@@ -23,10 +21,7 @@ export const PickupRequests: React.FC = () => {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_URL}/pickup-order`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      console.log('API Response:', res.data); // Debugging
+      const res = await api.get('/pickup-order');
 
       const orders = res.data.data || [];
       const formattedRequests = orders.map((order: any) => ({
@@ -42,6 +37,7 @@ export const PickupRequests: React.FC = () => {
       setRequests(formattedRequests);
     } catch (error) {
       console.error("Error fetching requests:", error);
+      await showError('Could not load pickup requests', error);
     } finally {
       setLoading(false);
     }
@@ -49,10 +45,7 @@ export const PickupRequests: React.FC = () => {
 
   const updateStatus = async (id: number, status: string) => {
     try {
-      await axios.put(`${API_URL}/pickup-order/${id}/status`,
-        { status, assigned_to: user?.user_id }, // Assign to current user when confirming/approving
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put(`/pickup-order/${id}/status`, { status, assigned_to: user?.user_id });
 
       // Update local state to reflect change immediately
       setRequests(prev =>
@@ -64,11 +57,11 @@ export const PickupRequests: React.FC = () => {
         setSelectedRequest({ ...selectedRequest, status: status });
       }
 
-      alert(`Request ${id} updated to ${status}`);
+      await showSuccess('Request updated', `Request ${id} is now ${status}.`);
       fetchRequests(); // Refresh to ensure data consistency
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating status:", error);
-      alert(error.response?.data?.message || "Failed to update status");
+      await showError('Could not update request', error);
     }
   };
 
@@ -77,12 +70,10 @@ export const PickupRequests: React.FC = () => {
 
     try {
       // 1. Record order completion
-      await axios.post(`${API_URL}/pickup-order/completion`, {
+      await api.post('/pickup-order/completion', {
         order_id: processingOrder.id,
         completed_by: user?.user_id,
         completion_notes: completionNotes
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       // 2. Update order status to 'completed'
@@ -91,9 +82,9 @@ export const PickupRequests: React.FC = () => {
       setShowCompletionModal(false);
       setCompletionNotes('');
       setProcessingOrder(null);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error completing order:", error);
-      alert(error.response?.data?.message || "Failed to complete order");
+      await showError('Could not complete request', error);
     }
   };
 

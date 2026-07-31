@@ -8,7 +8,7 @@ class RoleService {
     }
 
     const result = await sql`
-      INSERT INTO user_roles (user_id, role) 
+      INSERT INTO user_roles (user_id, user_role)
       VALUES (${user_id}, ${role})
       RETURNING *
     `;
@@ -29,7 +29,7 @@ class RoleService {
 
     const updated = await sql`
       UPDATE user_roles
-      SET role = ${role}
+      SET user_role = ${role}
       WHERE user_id = ${user_id}
       RETURNING *
     `;

@@ -45,7 +45,7 @@ export default function CreateNewPassword() {
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Passwords do not match *");
       return;
     }
 

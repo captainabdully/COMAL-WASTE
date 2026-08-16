@@ -26,6 +26,8 @@ export default function CreatePickup() {
     const [loading, setLoading] = useState(false);
     const [image, setImage] = useState(null);
     const [droppingPoints, setDroppingPoints] = useState([]);
+    const [configuredPrice, setConfiguredPrice] = useState(null);
+    const [priceLoading, setPriceLoading] = useState(false);
     const [categories] = useState([
         'heavy',
         'light',
@@ -43,6 +45,7 @@ export default function CreatePickup() {
         price: '',
         phone_number: '',
         quantity: '',
+        quantity_unit: '',
         comment: '',
     });
 
@@ -85,7 +88,7 @@ export default function CreatePickup() {
                 return;
             }
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                mediaTypes: ['images'],
                 allowsEditing: true,
                 aspect: [4, 3],
                 quality: 0.8,
@@ -127,8 +130,42 @@ export default function CreatePickup() {
         }));
     };
 
+    useEffect(() => {
+        const loadConfiguredPrice = async () => {
+            if (!formData.dropping_point_id || !formData.category) {
+                setConfiguredPrice(null);
+                return;
+            }
+
+            try {
+                setPriceLoading(true);
+                const response = await fetch(`${API_URL}/api/daily-price/today`);
+                const result = await response.json();
+                const prices = Array.isArray(result) ? result : (result.data || []);
+                const match = prices.find((item) => (
+                    String(item.dropping_point_id) === String(formData.dropping_point_id)
+                    && String(item.category).toLowerCase() === formData.category.toLowerCase()
+                ));
+                setConfiguredPrice(match ? Number(match.price) : null);
+            } catch (error) {
+                console.error('Error loading configured price:', error);
+                setConfiguredPrice(null);
+            } finally {
+                setPriceLoading(false);
+            }
+        };
+
+        loadConfiguredPrice();
+    }, [formData.dropping_point_id, formData.category]);
+
+    const quantityInKg = Number(formData.quantity || 0) * (formData.quantity_unit === 'tonne' ? 1000 : 1);
+    const estimatedTotal = configuredPrice === null ? 0 : configuredPrice * quantityInKg;
+
     const uploadImage = async (uri) => {
         try {
+            const token = await SecureStore.getItemAsync('authToken');
+            if (!token) throw new Error('Please sign in again before uploading an image');
+
             const formData = new FormData();
             const filename = uri.split('/').pop();
             const match = /\.(\w+)$/.exec(filename);
@@ -147,10 +184,14 @@ export default function CreatePickup() {
                     // Do not set Content-Type: multipart/form-data manually in React Native
                     // It needs the boundary which is automatically added when you don't set it.
                     'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
             });
 
             const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to upload image');
+            }
             return data.filename || data.imageUrl;
         } catch (error) {
             console.error('Error uploading image:', error);
@@ -161,9 +202,10 @@ export default function CreatePickup() {
     const handleSubmit = async () => {
         if (!formData.dropping_point_id) { Alert.alert('Error', 'Please select a dropping point'); return; }
         if (!formData.category) { Alert.alert('Error', 'Please select a category'); return; }
-        if (!formData.price) { Alert.alert('Error', 'Please enter a valid price'); return; }
+        if (configuredPrice === null) { Alert.alert('Error', 'No current price is set for this dropping point and category'); return; }
         if (!formData.phone_number) { Alert.alert('Error', 'Please enter a valid phone number'); return; }
         if (!formData.quantity) { Alert.alert('Error', 'Please enter a valid quantity'); return; }
+        if (!formData.quantity_unit) { Alert.alert('Error', 'Please select kg or tonne before entering quantity'); return; }
         if (!image) { Alert.alert('Error', 'Please add a photo'); return; }
 
         setLoading(true);
@@ -178,9 +220,10 @@ export default function CreatePickup() {
                 vendor_id,
                 dropping_point_id: parseInt(formData.dropping_point_id),
                 category: formData.category,
-                price: parseFloat(formData.price),
+                price: estimatedTotal,
                 phone_number: formData.phone_number,
-                quantity: parseInt(formData.quantity),
+                quantity: parseFloat(formData.quantity),
+                quantity_unit: formData.quantity_unit,
                 comment: formData.comment || '',
                 image: imageFilename,
             };
@@ -262,6 +305,30 @@ export default function CreatePickup() {
             borderRadius: 8,
             padding: 12,
             fontSize: 16,
+        },
+        priceCard: {
+            backgroundColor: '#F0F9F0',
+            borderColor: '#86EFAC',
+            borderWidth: 1,
+            borderRadius: 10,
+            padding: 14,
+        },
+        unitOptions: {
+            flexDirection: 'row',
+            gap: 10,
+        },
+        unitOption: {
+            flex: 1,
+            padding: 13,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: '#ddd',
+            alignItems: 'center',
+            backgroundColor: '#f9f9f9',
+        },
+        unitOptionSelected: {
+            backgroundColor: '#4CAF50',
+            borderColor: '#4CAF50',
         },
         picker: {
             backgroundColor: '#f9f9f9',
@@ -545,18 +612,25 @@ export default function CreatePickup() {
                         </View>
                     </View>
 
-                    {/* Price */}
+                    {/* Configured price */}
                     <View style={styles.formGroup}>
                         <Text style={styles.label}>
-                            Estimated Price (Tsh) <Text style={styles.required}>*</Text>
+                            Set Price <Text style={styles.required}>*</Text>
                         </Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Enter estimated price"
-                            keyboardType="numeric"
-                            value={formData.price}
-                            onChangeText={(value) => handleInputChange('price', value)}
-                        />
+                        <View style={styles.priceCard}>
+                            {priceLoading ? (
+                                <ActivityIndicator color="#2E7D32" />
+                            ) : configuredPrice === null ? (
+                                <Text style={{ color: '#B91C1C' }}>Select a dropping point and category with a current price.</Text>
+                            ) : (
+                                <>
+                                    <Text style={{ color: '#166534', fontWeight: '700', fontSize: 18 }}>Tsh {configuredPrice.toLocaleString()} / kg</Text>
+                                    {!!formData.quantity && !!formData.quantity_unit && (
+                                        <Text style={{ color: '#166534', marginTop: 5 }}>Estimated total: Tsh {estimatedTotal.toLocaleString()}</Text>
+                                    )}
+                                </>
+                            )}
+                        </View>
                     </View>
 
                     {/* Phone Number */}
@@ -573,17 +647,39 @@ export default function CreatePickup() {
                         />
                     </View>
 
+                    {/* Quantity unit */}
+                    <View style={styles.formGroup}>
+                        <Text style={styles.label}>
+                            Quantity Unit <Text style={styles.required}>*</Text>
+                        </Text>
+                        <View style={styles.unitOptions}>
+                            {['kg', 'tonne'].map((unit) => {
+                                const selected = formData.quantity_unit === unit;
+                                return (
+                                    <TouchableOpacity
+                                        key={unit}
+                                        style={[styles.unitOption, selected && styles.unitOptionSelected]}
+                                        onPress={() => handleInputChange('quantity_unit', unit)}
+                                    >
+                                        <Text style={{ color: selected ? '#FFF' : '#333', fontWeight: '700' }}>{unit === 'kg' ? 'KG' : 'TONNE'}</Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </View>
+
                     {/* Quantity */}
                     <View style={styles.formGroup}>
                         <Text style={styles.label}>
-                            Quantity <Text style={styles.required}>*</Text>
+                            Quantity{formData.quantity_unit ? ` (${formData.quantity_unit === 'kg' ? 'KG' : 'TONNE'})` : ''} <Text style={styles.required}>*</Text>
                         </Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="Enter quantity"
-                            keyboardType="numeric"
+                            placeholder={formData.quantity_unit ? `Enter quantity in ${formData.quantity_unit === 'kg' ? 'KG' : 'tonnes'}` : 'Select KG or TONNE first'}
+                            keyboardType="decimal-pad"
                             value={formData.quantity}
                             onChangeText={(value) => handleInputChange('quantity', value)}
+                            editable={!!formData.quantity_unit}
                         />
                     </View>
 

@@ -1,6 +1,11 @@
 import {neon} from '@neondatabase/serverless';
+import { setDefaultAutoSelectFamily } from 'node:net';
 import "dotenv/config";
 // import jwt from "jsonwebtoken";
+
+// Node's IPv4/IPv6 connection racing can time out against Neon's HTTPS
+// endpoint on some networks even when IPv4 is reachable.
+setDefaultAutoSelectFamily(false);
 
 // Creates a SQL connection using our DB URL from .env file
 export const sql = neon(process.env.DATABASE_URL);
@@ -96,9 +101,13 @@ async function initDB() {
         category category_type NOT NULL,
         price DECIMAL(10,2) NOT NULL,
         phone_number VARCHAR(20) NOT NULL,
-        quantity INT NOT NULL,
+        quantity DECIMAL(12,3) NOT NULL,
+        quantity_unit VARCHAR(10) NOT NULL DEFAULT 'kg' CHECK (quantity_unit IN ('kg', 'tonne')),
         status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'assigned', 'completed', 'cancelled')),
         comment TEXT,
+        rejection_comment TEXT,
+        rejection_comment_by VARCHAR(100),
+        rejection_commented_at TIMESTAMP,
         image VARCHAR(255),
         assigned_to VARCHAR(100),
         completed_at TIMESTAMP,
@@ -108,6 +117,14 @@ async function initDB() {
         FOREIGN KEY (assigned_to) REFERENCES users(user_id)
       )
     `;
+
+    await sql`ALTER TABLE pickup_order ALTER COLUMN quantity TYPE DECIMAL(12,3) USING quantity::DECIMAL`;
+    await sql`ALTER TABLE pickup_order ADD COLUMN IF NOT EXISTS quantity_unit VARCHAR(10) NOT NULL DEFAULT 'kg'`;
+
+    // Backfill columns for databases created before rejection feedback was added.
+    await sql`ALTER TABLE pickup_order ADD COLUMN IF NOT EXISTS rejection_comment TEXT`;
+    await sql`ALTER TABLE pickup_order ADD COLUMN IF NOT EXISTS rejection_comment_by VARCHAR(100)`;
+    await sql`ALTER TABLE pickup_order ADD COLUMN IF NOT EXISTS rejection_commented_at TIMESTAMP`;
 
     // Order completion table
     await sql`CREATE TABLE IF NOT EXISTS order_completion (

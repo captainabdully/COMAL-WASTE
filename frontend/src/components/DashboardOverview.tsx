@@ -3,6 +3,7 @@ import { MetricCard } from './MetricCard';
 import { api } from '../lib/api';
 import { showError } from '../lib/alerts';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type OrderStatus = 'pending' | 'assigned' | 'completed' | 'cancelled';
 
@@ -10,6 +11,7 @@ interface Order {
   id: number;
   status: OrderStatus;
   quantity: number | string;
+  quantity_unit?: 'kg' | 'tonne';
   price: number | string;
   created_at: string;
   completed_at?: string | null;
@@ -53,6 +55,7 @@ const formatNumber = (value: number) => new Intl.NumberFormat('en-TZ').format(va
 
 export const DashboardOverview: React.FC = () => {
   const { token } = useAuth();
+  const { t } = useLanguage();
   const [metrics, setMetrics] = useState<DashboardMetrics>(emptyMetrics);
   const [loading, setLoading] = useState(true);
 
@@ -71,7 +74,10 @@ export const DashboardOverview: React.FC = () => {
         const assignedOrders = orders.filter((order) => order.status === 'assigned');
 
         setMetrics({
-          completedKg: completedOrders.reduce((total, order) => total + numberValue(order.quantity), 0),
+          completedKg: completedOrders.reduce(
+            (total, order) => total + numberValue(order.quantity) * (order.quantity_unit === 'tonne' ? 1000 : 1),
+            0,
+          ),
           cancelledOrders: orders.filter((order) => order.status === 'cancelled').length,
           pendingOrders: orders.filter((order) => order.status === 'pending').length,
           monthlyRequests: orders.filter((order) => isInCurrentMonth(order.created_at)).length,
@@ -101,47 +107,47 @@ export const DashboardOverview: React.FC = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-green-900/90 flex items-center">
           <div className="px-8">
-            <h1 className="text-4xl font-bold text-white mb-2">COMAL Platform</h1>
-            <p className="text-xl text-gray-200">Smart Scrap Material Management System</p>
+            <h1 className="text-4xl font-bold text-white mb-2">{t('platform')}</h1>
+            <p className="text-xl text-gray-200">{t('platformSubtitle')}</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title="Completed Scrap"
+          title={t('completedScrap')}
           value={value(metrics.completedKg, ' kg')}
-          change="Completed orders"
+          change={t('completedOrders')}
           trend="neutral"
           color="bg-green-500"
         />
         <MetricCard
-          title="Cancelled Orders"
+          title={t('cancelledOrders')}
           value={value(metrics.cancelledOrders)}
-          change="All time"
+          change={t('allTime')}
           trend="neutral"
           color="bg-amber-500"
         />
         <MetricCard
-          title="Pending Orders"
+          title={t('pendingOrders')}
           value={value(metrics.pendingOrders)}
-          change="Awaiting assignment"
+          change={t('awaitingAssignment')}
           trend="neutral"
           color="bg-blue-500"
         />
         <MetricCard
-          title="Requests This Month"
+          title={t('requestsThisMonth')}
           value={value(metrics.monthlyRequests)}
-          change="Created this month"
+          change={t('createdThisMonth')}
           trend="neutral"
           color="bg-purple-500"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <MetricCard title="Active Vendors" value={value(metrics.activeVendors)} change="Registered vendor accounts" color="bg-indigo-500" />
-        <MetricCard title="Pending Payment" value={loading ? '—' : `TZS ${formatNumber(metrics.pendingPayment)}`} change="Assigned orders" color="bg-red-500" />
-        <MetricCard title="Completed Jobs This Month" value={value(metrics.completedJobsThisMonth)} change="Completed this month" color="bg-teal-500" />
+        <MetricCard title={t('activeVendors')} value={value(metrics.activeVendors)} change={t('registeredVendorAccounts')} color="bg-indigo-500" />
+        <MetricCard title={t('pendingPayment')} value={loading ? '—' : `TZS ${formatNumber(metrics.pendingPayment)}`} change={t('assignedOrders')} color="bg-red-500" />
+        <MetricCard title={t('completedJobsThisMonth')} value={value(metrics.completedJobsThisMonth)} change={t('completedThisMonth')} color="bg-teal-500" />
       </div>
     </div>
   );

@@ -9,11 +9,13 @@ import { resetPasswordAPI } from "../../constants/authAPI";
 import { styles } from "../../assets/styles/auth.styles";
 import { COLORS } from "../../constants/colors";
 import Toast from 'react-native-toast-message';
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function CreateNewPassword() {
   const router = useRouter();
-  const { email, token } = useLocalSearchParams();
+  const { phone_number } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,17 +26,16 @@ export default function CreateNewPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
-    // Validate that we have the required token
-    if (!token) {
-      setError("Invalid or expired reset link. Please request a new one.");
+    if (!phone_number) {
+      setError(t("phoneRequired"));
     }
-  }, [token]);
+  }, [phone_number, t]);
 
   const onResetPassword = async () => {
     setError("");
 
-    if (!token) {
-      setError("Invalid reset token. Please request a new password reset.");
+    if (!phone_number) {
+      setError(t("phoneRequired"));
       return;
     }
 
@@ -55,12 +56,12 @@ export default function CreateNewPassword() {
 
     try {
       setLoading(true);
-      const res = await resetPasswordAPI(email, password, token);
+      const res = await resetPasswordAPI(phone_number, password);
       setLoading(false);
       
       Toast.show({
         type: 'success',
-        text1: 'Success',
+        text1: t("success"),
         text2: res.message || "Password reset successfully",
       });
       
@@ -72,29 +73,29 @@ export default function CreateNewPassword() {
       setLoading(false);
       Toast.show({
         type: 'error',
-        text1: 'Error',
+        text1: t("error"),
         text2: err.message || "Failed to reset password",
       });
       setError(err.message || "Failed to reset password");
     }
   };
 
-  if (!token) {
+  if (!phone_number) {
     return (
       <KeyboardAwareScrollView
         contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 20 }}
       >
         <View style={styles.container}>
           <Ionicons name="alert-circle" size={64} color={COLORS.expense} />
-          <Text style={styles.title}>Invalid Link</Text>
+          <Text style={styles.title}>{t("invalidLink")}</Text>
           <Text style={{ marginBottom: 20, textAlign: 'center', color: COLORS.text }}>
-            The password reset link is invalid or has expired.
+            {t("invalidLinkDescription")}
           </Text>
           <TouchableOpacity 
             style={styles.button}
             onPress={() => router.push("/forgot-password")}
           >
-            <Text style={styles.buttonText}>Request New Link</Text>
+            <Text style={styles.buttonText}>{t("requestNewLink")}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
@@ -111,9 +112,9 @@ export default function CreateNewPassword() {
     >
       <View style={styles.container}>
         <Image source={require("../../assets/images/logo 1.png")} style={styles.illustration} />
-        <Text style={styles.title}>Create New Password</Text>
+        <Text style={styles.title}>{t("createNewPassword")}</Text>
         <Text style={{ marginBottom: 20, textAlign: 'center', color: COLORS.text }}>
-          Enter your new password for {email}
+          {t("newPasswordForPhone")} {phone_number}
         </Text>
 
         {error !== "" && (
@@ -127,7 +128,7 @@ export default function CreateNewPassword() {
           <TextInput
             style={styles.passwordInput}
             secureTextEntry={!showPassword}
-            placeholder="New password"
+            placeholder={t("newPassword")}
             onChangeText={setPassword}
             value={password}
           />
@@ -147,7 +148,7 @@ export default function CreateNewPassword() {
           <TextInput
             style={styles.passwordInput}
             secureTextEntry={!showConfirmPassword}
-            placeholder="Re-type password"
+            placeholder={t("retypePassword")}
             onChangeText={setConfirmPassword}
             value={confirmPassword}
           />
@@ -164,7 +165,7 @@ export default function CreateNewPassword() {
         </View>
 
         <TouchableOpacity style={styles.button} onPress={onResetPassword} disabled={loading}>
-          <Text style={styles.buttonText}>{loading ? "Resetting..." : "Reset Password"}</Text>
+          <Text style={styles.buttonText}>{loading ? t("resetting") : t("resetPassword")}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>

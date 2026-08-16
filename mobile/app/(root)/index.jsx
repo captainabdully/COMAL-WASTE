@@ -1,6 +1,6 @@
 // app/(root)/index.jsx
 import { useRouter } from "expo-router";
-import { Alert, FlatList, Image, RefreshControl, Text, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, Image, RefreshControl, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
@@ -10,6 +10,8 @@ import { Ionicons } from "@expo/vector-icons";
 
 
 import { API_URL } from "../../constants/api";
+import LanguageToggle from "../../components/LanguageToggle";
+import { useLanguage } from "../../contexts/LanguageContext";
 // New styles for pickup layout
 // Status colors mapping
 const statusColors = {
@@ -22,6 +24,7 @@ const statusColors = {
 export default function PickupRequests() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
 
   const pickupStyles = {
     container: {
@@ -211,6 +214,9 @@ export default function PickupRequests() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [isAdmin, setIsAdmin] = useState(false);
+  const [rejectionOrderId, setRejectionOrderId] = useState(null);
+  const [rejectionComment, setRejectionComment] = useState("");
+  const [isRejecting, setIsRejecting] = useState(false);
 
   useEffect(() => {
     async function loadUser() {
@@ -277,12 +283,12 @@ export default function PickupRequests() {
 
   const handleLogout = async () => {
     Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
+      t("logout"),
+      t("logoutQuestion"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("cancel"), style: "cancel" },
         {
-          text: "Logout",
+          text: t("logout"),
           style: "destructive",
           onPress: async () => {
             await SecureStore.deleteItemAsync("authToken");
@@ -298,19 +304,25 @@ export default function PickupRequests() {
   };
 
   const handlePickupAction = async (id, action) => {
+    if (action === "reject") {
+      setRejectionOrderId(id);
+      setRejectionComment("");
+      return;
+    }
+
     Alert.alert(
-      `${action === 'accept' ? 'Accept' : 'Reject'} Pickup`,
-      `Are you sure you want to ${action} this pickup request?`,
+      t("acceptPickup"),
+      t("acceptPickupQuestion"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("cancel"), style: "cancel" },
         {
-          text: action === 'accept' ? 'Accept' : 'Reject',
-          style: action === 'accept' ? 'default' : 'destructive',
+          text: t("accept"),
+          style: "default",
           onPress: async () => {
             try {
               const token = await SecureStore.getItemAsync("authToken");
               // Map UI actions to DB statuses: accept -> assigned, reject -> cancelled
-              const status = action === 'accept' ? 'assigned' : 'cancelled';
+              const status = "assigned";
 
               const response = await fetch(`${API_URL}/api/pickup-order/${id}/status`, {
                 method: 'PUT',
@@ -326,18 +338,54 @@ export default function PickupRequests() {
                 setPickups(pickups.map(pickup =>
                   pickup.id === id ? { ...pickup, status } : pickup
                 ));
-                Alert.alert("Success", `Pickup request ${status} successfully`);
+                Alert.alert(t("success"), t("pickupUpdated"));
               } else {
-                throw new Error("Failed to update status");
+                throw new Error(t("pickupUpdateFailed"));
               }
             } catch (error) {
               console.error(error);
-              Alert.alert("Error", `Failed to ${action} pickup request`);
+              Alert.alert(t("error"), t("pickupUpdateFailed"));
             }
           }
         },
       ]
     );
+  };
+
+  const submitRejection = async () => {
+    if (!rejectionComment.trim()) {
+      Alert.alert(t("error"), t("rejectionReasonRequired"));
+      return;
+    }
+
+    try {
+      setIsRejecting(true);
+      const token = await SecureStore.getItemAsync("authToken");
+      const response = await fetch(`${API_URL}/api/pickup-order/${rejectionOrderId}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: "cancelled", rejection_comment: rejectionComment.trim() }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || t("pickupUpdateFailed"));
+
+      setPickups((currentPickups) => currentPickups.map((pickup) => (
+        pickup.id === rejectionOrderId
+          ? { ...pickup, status: "cancelled", rejection_comment: rejectionComment.trim() }
+          : pickup
+      )));
+      setRejectionOrderId(null);
+      setRejectionComment("");
+      Alert.alert(t("success"), t("rejectionSubmitted"));
+    } catch (error) {
+      console.error(error);
+      Alert.alert(t("error"), error.message || t("pickupUpdateFailed"));
+    } finally {
+      setIsRejecting(false);
+    }
   };
 
   const handleCreatePickup = () => {
@@ -357,10 +405,10 @@ export default function PickupRequests() {
       <View style={pickupStyles.pickupCard}>
         <View style={pickupStyles.pickupHeader}>
           <View style={{ flex: 1 }}>
-            <Text style={pickupStyles.pickupId}>Order: {item.order_id}</Text>
+            <Text style={pickupStyles.pickupId}>{t("order")}: {item.order_id}</Text>
             <View style={[pickupStyles.pickupStatus, { backgroundColor: statusStyle.bg, alignSelf: 'flex-start', marginTop: 5 }]}>
               <Text style={{ color: statusStyle.text, textTransform: 'capitalize', fontSize: 12 }}>
-                {item.status}
+                {t(item.status)}
               </Text>
             </View>
           </View>
@@ -381,33 +429,40 @@ export default function PickupRequests() {
 
         <View style={pickupStyles.pickupDetails}>
           <View style={pickupStyles.pickupItem}>
-            <Text style={pickupStyles.pickupLabel}>Category:</Text>
+            <Text style={pickupStyles.pickupLabel}>{t("category")}:</Text>
             <Text style={pickupStyles.pickupValue}>{item.category}</Text>
           </View>
           <View style={pickupStyles.pickupItem}>
-            <Text style={pickupStyles.pickupLabel}>Quantity:</Text>
-            <Text style={pickupStyles.pickupValue}>{item.quantity} items</Text>
+            <Text style={pickupStyles.pickupLabel}>{t("quantity")}:</Text>
+            <Text style={pickupStyles.pickupValue}>{item.quantity} {item.quantity_unit === 'tonne' ? 'tonne' : 'kg'}</Text>
           </View>
           <View style={pickupStyles.pickupItem}>
-            <Text style={pickupStyles.pickupLabel}>Price:</Text>
+            <Text style={pickupStyles.pickupLabel}>{t("price")}:</Text>
             <Text style={pickupStyles.pickupValue}>{item.price}</Text>
           </View>
           <View style={pickupStyles.pickupItem}>
-            <Text style={pickupStyles.pickupLabel}>Phone:</Text>
+            <Text style={pickupStyles.pickupLabel}>{t("phone")}:</Text>
             <Text style={pickupStyles.pickupValue}>{item.phone_number}</Text>
           </View>
           <View style={pickupStyles.pickupItem}>
-            <Text style={pickupStyles.pickupLabel}>Drop Point:</Text>
+            <Text style={pickupStyles.pickupLabel}>{t("dropPoint")}:</Text>
             <Text style={pickupStyles.pickupValue}>{item.location_name}</Text>
           </View>
           <View style={pickupStyles.pickupItem}>
-            <Text style={pickupStyles.pickupLabel}>Created:</Text>
+            <Text style={pickupStyles.pickupLabel}>{t("created")}:</Text>
             <Text style={pickupStyles.pickupValue}>{item.created_at}</Text>
           </View>
         </View>
 
         {item.comment ? (
-          <Text style={pickupStyles.pickupComment}>Note: {item.comment}</Text>
+          <Text style={pickupStyles.pickupComment}>{t("note")}: {item.comment}</Text>
+        ) : null}
+
+        {item.status === "cancelled" && item.rejection_comment ? (
+          <View style={{ marginTop: 12, backgroundColor: "#FFF1F2", borderLeftColor: "#DC2626", borderLeftWidth: 4, borderRadius: 8, padding: 12 }}>
+            <Text style={{ color: "#991B1B", fontWeight: "700", marginBottom: 4 }}>{t("rejectionReason")}</Text>
+            <Text style={{ color: "#7F1D1D" }}>{item.rejection_comment}</Text>
+          </View>
         ) : null}
 
         {item.status === 'pending' && isAdmin && (
@@ -416,13 +471,13 @@ export default function PickupRequests() {
               style={[pickupStyles.actionButton, pickupStyles.rejectButton]}
               onPress={() => handlePickupAction(item.id, 'reject')}
             >
-              <Text style={pickupStyles.actionButtonText}>Reject</Text>
+              <Text style={pickupStyles.actionButtonText}>{t("reject")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[pickupStyles.actionButton, pickupStyles.acceptButton]}
               onPress={() => handlePickupAction(item.id, 'accept')}
             >
-              <Text style={pickupStyles.actionButtonText}>Accept</Text>
+              <Text style={pickupStyles.actionButtonText}>{t("accept")}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -437,7 +492,7 @@ export default function PickupRequests() {
           }}
           onPress={() => router.push(`/pickup-details/${item.id}`)}
         >
-          <Text style={{ color: '#333', fontWeight: '600' }}>View Details</Text>
+          <Text style={{ color: '#333', fontWeight: '600' }}>{t("viewDetails")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -460,26 +515,34 @@ export default function PickupRequests() {
               </TouchableOpacity>
             </View>
             <View>
-              <Text style={pickupStyles.welcomeText}>Welcome back,</Text>
+              <Text style={pickupStyles.welcomeText}>{t("welcomeBack")}</Text>
               <Text style={pickupStyles.userName}>{userEmail}</Text>
             </View>
           </View>
 
-          <TouchableOpacity onPress={handleLogout} style={pickupStyles.logoutButton}>
-            <Ionicons name="log-out-outline" size={24} color="#FFF" />
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <LanguageToggle light />
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={t("logout")}
+              onPress={handleLogout}
+              style={pickupStyles.logoutButton}
+            >
+              <Ionicons name="log-out-outline" size={24} color="#FFF" />
+            </TouchableOpacity>
+          </View>
 
         </View>
             <TouchableOpacity onPress={() => router.push('/dropping-point')} activeOpacity={0.8} style={pickupStyles.gradientBtn}>
       
           <Ionicons name="trending-up" size={22} color="#FFF" />
-          <Text style={pickupStyles.gradientText}>Daily Prices</Text>
+          <Text style={pickupStyles.gradientText}>{t("dailyPrices")}</Text>
         
       </TouchableOpacity>
       </View>
 
       <View style={pickupStyles.mainContent}>
-        <Text style={pickupStyles.sectionTitle}>Pickup Requests</Text>
+        <Text style={pickupStyles.sectionTitle}>{t("pickupRequests")}</Text>
 
         <FlatList
           data={pickups}
@@ -488,7 +551,7 @@ export default function PickupRequests() {
           ListEmptyComponent={
             <View style={pickupStyles.noPickupsContainer}>
               <Ionicons name="cube-outline" size={64} color="#CCC" />
-              <Text style={pickupStyles.noPickupsText}>No pickup requests found</Text>
+              <Text style={pickupStyles.noPickupsText}>{t("noPickupRequests")}</Text>
             </View>
           }
           refreshControl={
@@ -506,6 +569,32 @@ export default function PickupRequests() {
       >
         <Ionicons name="add" size={30} color="#FFF" />
       </TouchableOpacity> */}
+
+      {rejectionOrderId !== null && (
+        <View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 }}>
+          <View style={{ backgroundColor: "#FFF", borderRadius: 16, padding: 20 }}>
+            <Text style={{ fontSize: 20, fontWeight: "700", color: "#111827", marginBottom: 8 }}>{t("rejectPickup")}</Text>
+            <Text style={{ color: "#4B5563", marginBottom: 14 }}>{t("rejectionReason")}</Text>
+            <TextInput
+              value={rejectionComment}
+              onChangeText={setRejectionComment}
+              placeholder={t("rejectionReasonPlaceholder")}
+              multiline
+              autoFocus
+              textAlignVertical="top"
+              style={{ borderColor: "#D1D5DB", borderWidth: 1, borderRadius: 10, minHeight: 110, padding: 12, marginBottom: 16 }}
+            />
+            <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
+              <TouchableOpacity disabled={isRejecting} onPress={() => setRejectionOrderId(null)} style={{ padding: 12 }}>
+                <Text style={{ color: "#4B5563", fontWeight: "600" }}>{t("cancel")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity disabled={isRejecting} onPress={submitRejection} style={{ backgroundColor: "#DC2626", borderRadius: 8, minWidth: 96, padding: 12, alignItems: "center" }}>
+                <Text style={{ color: "#FFF", fontWeight: "700" }}>{isRejecting ? "..." : t("reject")}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 }

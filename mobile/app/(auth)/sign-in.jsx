@@ -10,10 +10,13 @@ import { loginUser } from "../../constants/authAPI";
 import { styles } from "../../assets/styles/auth.styles";
 import { COLORS } from "../../constants/colors";
 import Toast from 'react-native-toast-message';
+import LanguageToggle from "../../components/LanguageToggle";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function SignIn() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -23,7 +26,7 @@ export default function SignIn() {
     setError("");
 
     if (!email || !password) {
-      setError("Email and password are required");
+      setError(t("emailPasswordRequired"));
       return;
     }
 
@@ -52,24 +55,24 @@ export default function SignIn() {
           
           Toast.show({
             type: 'success',
-            text1: 'Success',
-            text2: 'Logged in successfully',
+            text1: t("success"),
+            text2: t("loginSuccess"),
           });
           
           router.replace("/");
         } else {
           console.error("Token verification failed");
-          setError("Failed to save session");
-          Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to save session' });
+          setError(t("failedSaveSession"));
+          Toast.show({ type: 'error', text1: t("error"), text2: t("failedSaveSession") });
         }
       } else {
-        setError("Invalid credentials");
-        Toast.show({ type: 'error', text1: 'Error', text2: 'Invalid credentials' });
+        setError(t("invalidCredentials"));
+        Toast.show({ type: 'error', text1: t("error"), text2: t("invalidCredentials") });
       }
     } catch (err) {
       console.log("Login error:", err);
-      setError(err.message || "Login failed");
-      Toast.show({ type: 'error', text1: 'Error', text2: err.message || 'Login failed' });
+      setError(err.message || t("loginFailed"));
+      Toast.show({ type: 'error', text1: t("error"), text2: err.message || t("loginFailed") });
     }
   };
 
@@ -81,7 +84,10 @@ export default function SignIn() {
       keyboardOpeningTime={0}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.container}>
+      <View style={[styles.container, { position: "relative" }]}>
+        <View style={{ position: "absolute", top: insets.top + 16, right: 20, zIndex: 1 }}>
+          <LanguageToggle />
+        </View>
         <Image source={require("../../assets/images/logo 1.png")} style={styles.illustration} />
         <Text style={styles.title}>Skrepa Chap</Text>
 
@@ -92,12 +98,12 @@ export default function SignIn() {
           </View>
         )}
 
-        <TextInput style={styles.input} placeholder="Enter email" onChangeText={setEmail} autoCapitalize="none" />
+        <TextInput style={styles.input} placeholder={t("enterEmail")} onChangeText={setEmail} autoCapitalize="none" />
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.passwordInput}
             secureTextEntry={!showPassword}
-            placeholder="Enter password"
+            placeholder={t("enterPassword")}
             onChangeText={setPassword}
           />
           <TouchableOpacity
@@ -113,20 +119,20 @@ export default function SignIn() {
         </View>
 
         <TouchableOpacity style={styles.button} onPress={onLogin}>
-          <Text style={styles.buttonText}>Sign In</Text>
+          <Text style={styles.buttonText}>{t("signIn")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("/forgot-password")}>
-          <Text style={{ marginTop: 15, color: COLORS.primary, textAlign: 'center' }}>Forgot Password?</Text>
+          <Text style={{ marginTop: 15, color: COLORS.primary, textAlign: 'center' }}>{t("forgotPassword")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("/sign-up")}>
-          <Text style={{ marginTop: 20, color: COLORS.primary, textAlign: 'center' }}>Don't have an account? Sign Up</Text>
+          <Text style={{ marginTop: 20, color: COLORS.primary, textAlign: 'center' }}>{t("noAccount")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("/terms-and-conditions")}>
           <Text style={{ marginTop: 20, color: COLORS.primary, textAlign: 'center', fontSize: 12 }}>
-            By Login, I am consent to the Terms and Conditions & Privacy Policy
+            {t("loginConsent")}
           </Text>
         </TouchableOpacity>
       </View>

@@ -160,7 +160,7 @@ export default function PickupDetails() {
                     </View>
 
                     <DetailRow label="Category" value={order.category} />
-                    <DetailRow label="Quantity" value={`${order.quantity} items`} />
+                    <DetailRow label="Quantity" value={`${order.quantity} ${order.quantity_unit === 'tonne' ? 'tonne' : 'kg'}`} />
                     <DetailRow label="Price" value={`${order.price} Tsh`} />
                     <DetailRow label="Dropping Point" value={order.location_name} />
                     <DetailRow label="Vendor Phone" value={order.phone_number} />
@@ -170,6 +170,13 @@ export default function PickupDetails() {
                         <View style={{ marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: '#eee' }}>
                             <Text style={{ color: '#666', marginBottom: 5 }}>Comments:</Text>
                             <Text style={{ fontStyle: 'italic' }}>{order.comment}</Text>
+                        </View>
+                    )}
+
+                    {order.status === 'cancelled' && order.rejection_comment && (
+                        <View style={{ marginTop: 15, backgroundColor: '#FFF1F2', borderLeftColor: '#DC2626', borderLeftWidth: 4, borderRadius: 8, padding: 12 }}>
+                            <Text style={{ color: '#991B1B', fontWeight: '700', marginBottom: 5 }}>Rejection reason</Text>
+                            <Text style={{ color: '#7F1D1D' }}>{order.rejection_comment}</Text>
                         </View>
                     )}
                 </View>

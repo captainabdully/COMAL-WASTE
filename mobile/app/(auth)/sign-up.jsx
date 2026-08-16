@@ -9,10 +9,12 @@ import { COLORS } from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function SignUp() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -26,7 +28,7 @@ export default function SignUp() {
     setError("");
 
     if (!name || !email || !phone || !address || !password) {
-      setError("All fields are required");
+      setError(t("allFieldsRequired"));
       return;
     }
 
@@ -36,16 +38,16 @@ export default function SignUp() {
 
       Toast.show({
         type: 'success',
-        text1: 'Success',
-        text2: 'Account created successfully',
+        text1: t("success"),
+        text2: t("accountCreated"),
       });
       
       setTimeout(() => {
         router.replace("/sign-in");
       }, 1500);
     } catch (err) {
-      setError(err.message || "Server error");
-      Toast.show({ type: 'error', text1: 'Error', text2: err.message || "Server error" });
+      setError(err.message || t("error"));
+      Toast.show({ type: 'error', text1: t("error"), text2: err.message || t("error") });
     } finally {
       setLoading(false);
     }
@@ -61,7 +63,7 @@ export default function SignUp() {
     >
       <View style={styles.container}>
         <Image source={require("../../assets/images/logo 1.png")} style={styles.illustration} />
-        <Text style={styles.title}>Create Account</Text>
+        <Text style={styles.title}>{t("createAccount")}</Text>
 
 
 
@@ -72,15 +74,15 @@ export default function SignUp() {
           </View>
         )}
 
-        <TextInput style={styles.input} placeholder="Name" onChangeText={setName} />
-        <TextInput style={styles.input} placeholder="Email" onChangeText={setEmail} autoCapitalize="none" />
-        <TextInput style={styles.input} placeholder="Phone Number" onChangeText={setPhone} />
-        <TextInput style={styles.input} placeholder="Address" onChangeText={setAddress} />
+        <TextInput style={styles.input} placeholder={t("name")} onChangeText={setName} />
+        <TextInput style={styles.input} placeholder={t("email")} onChangeText={setEmail} autoCapitalize="none" />
+        <TextInput style={styles.input} placeholder={t("phoneNumber")} onChangeText={setPhone} />
+        <TextInput style={styles.input} placeholder={t("address")} onChangeText={setAddress} />
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.passwordInput}
             secureTextEntry={!showPassword}
-            placeholder="Password"
+            placeholder={t("password")}
             onChangeText={setPassword}
           />
           <TouchableOpacity
@@ -99,11 +101,11 @@ export default function SignUp() {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Sign Up</Text>
+            <Text style={styles.buttonText}>{t("signUp")}</Text>
           )}
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push("/sign-in")}>
-          <Text style={{ marginTop: 20, color: COLORS.primary }}>Already have an account? Sign In</Text>
+          <Text style={{ marginTop: 20, color: COLORS.primary }}>{t("alreadyHaveAccount")}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>

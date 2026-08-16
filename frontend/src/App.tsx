@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => (
   <ThemeProvider defaultTheme="light">
+    <LanguageProvider>
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -43,6 +45,7 @@ const App = () => (
         </TooltipProvider>
       </QueryClientProvider>
     </AuthProvider>
+    </LanguageProvider>
   </ThemeProvider>
 );
 

@@ -2,15 +2,28 @@ import { sql } from '../config/db.js';
 
 class OrderService {
   async createPickupOrder(orderData) {
-    const { vendor_id, dropping_point_id, category, price, phone_number, quantity, comment, image } = orderData;
+    const { vendor_id, dropping_point_id, category, price, phone_number, quantity, quantity_unit, comment, image } = orderData;
     
     const result = await sql`
-      INSERT INTO pickup_order (vendor_id, dropping_point_id, category, price, phone_number, quantity, comment, image)
-      VALUES (${vendor_id}, ${dropping_point_id}, ${category}, ${price}, ${phone_number}, ${quantity}, ${comment}, ${image})
+      INSERT INTO pickup_order (vendor_id, dropping_point_id, category, price, phone_number, quantity, quantity_unit, comment, image)
+      VALUES (${vendor_id}, ${dropping_point_id}, ${category}, ${price}, ${phone_number}, ${quantity}, ${quantity_unit}, ${comment}, ${image})
       RETURNING *
     `;
     
     return result[0];
+  }
+
+  async getCurrentPrice(droppingPointId, category) {
+    const prices = await sql`
+      SELECT price
+      FROM daily_price
+      WHERE dropping_point_id = ${droppingPointId}
+        AND category = ${category}
+        AND effective_date >= CURRENT_DATE - INTERVAL '7 days'
+      ORDER BY effective_date DESC, created_at DESC
+      LIMIT 1
+    `;
+    return prices[0] ? Number(prices[0].price) : null;
   }
 
   async getVendorOrders(vendor_id) {
@@ -39,13 +52,16 @@ class OrderService {
     `;
   }
 
-  async updateOrderStatus(id, status, assigned_to) {
+  async updateOrderStatus(id, status, assigned_to, rejectionComment = null, rejectionCommentBy = null) {
     const updated = await sql`
       UPDATE pickup_order
       SET 
         status = ${status},
         assigned_to = ${assigned_to},
-        completed_at = ${status === 'completed' ? new Date() : null}
+        completed_at = ${status === 'completed' ? new Date() : null},
+        rejection_comment = CASE WHEN ${status} = 'cancelled' THEN ${rejectionComment} ELSE rejection_comment END,
+        rejection_comment_by = CASE WHEN ${status} = 'cancelled' THEN ${rejectionCommentBy} ELSE rejection_comment_by END,
+        rejection_commented_at = CASE WHEN ${status} = 'cancelled' THEN CURRENT_TIMESTAMP ELSE rejection_commented_at END
       WHERE id = ${id}
       RETURNING *
     `;

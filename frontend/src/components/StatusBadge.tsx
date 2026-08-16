@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface StatusBadgeProps {
   status: 'pending' | 'approved' | 'rejected' | 'completed' | 'in-progress' | 'paid' | 'unpaid';
@@ -6,6 +7,7 @@ interface StatusBadgeProps {
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' }) => {
+  const { t } = useLanguage();
   const colors = {
     pending: 'bg-amber-100 text-amber-800',
     approved: 'bg-green-100 text-green-800',
@@ -24,7 +26,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' })
 
   return (
     <span className={`${colors[status]} ${sizes[size]} rounded-full font-medium inline-block`}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {t(status === 'in-progress' ? 'inProgress' : status)}
     </span>
   );
 };

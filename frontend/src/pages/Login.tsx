@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../lib/api';
 import { showError, showSuccess } from '../lib/alerts';
+import { LanguageToggle } from '../components/LanguageToggle';
+import { useLanguage } from '../contexts/LanguageContext';
 
 
 const Login = () => {
@@ -11,6 +13,7 @@ const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
+    const { t } = useLanguage();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -53,11 +56,12 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 bg-[url('/src/assets/comal.png')] bg-cover bg-center">
+        <div className="relative min-h-screen bg-gray-100 flex items-center justify-center p-4 bg-[url('/src/assets/comal.png')] bg-cover bg-center">
+            <div className="absolute right-4 top-4"><LanguageToggle /></div>
             <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-                    <p className="text-gray-500 mt-2">Sign in to your account</p>
+                    <h1 className="text-3xl font-bold text-gray-900">{t('welcomeBack')}</h1>
+                    <p className="text-gray-500 mt-2">{t('signInPrompt')}</p>
                 </div>
 
                 {error && (
@@ -69,7 +73,7 @@ const Login = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Email Address
+                            {t('emailAddress')}
                         </label>
                         <input
                             type="email"
@@ -83,7 +87,7 @@ const Login = () => {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Password
+                            {t('password')}
                         </label>
                         <input
                             type="password"
@@ -101,7 +105,7 @@ const Login = () => {
                         className={`w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition duration-200 ${loading ? 'opacity-70 cursor-not-allowed' : ''
                             }`}
                     >
-                        {loading ? 'Signing in...' : 'Sign In'}
+                        {loading ? t('signingIn') : t('signIn')}
                     </button>
                 </form>
             </div>

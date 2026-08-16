@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DataTable } from './DataTable';
 import { StatusBadge } from './StatusBadge';
 import { useAuth } from '../contexts/AuthContext';
-import { api } from '../lib/api';
+import { api, getAssetUrl } from '../lib/api';
 import { showError, showSuccess } from '../lib/alerts';
 
 
@@ -28,7 +28,7 @@ export const PickupRequests: React.FC = () => {
         id: order.id,
         vendor: order.vendor_name || 'Unknown Vendor',
         material: order.category ? (order.category.charAt(0).toUpperCase() + order.category.slice(1)) : 'N/A',
-        quantity: `${order.quantity} kg`,
+        quantity: `${order.quantity} ${order.quantity_unit === 'tonne' ? 'tonne' : 'kg'}`,
         date: new Date(order.created_at).toLocaleDateString(),
         status: order.status,
         originalData: order // Keep original data if needed
@@ -178,7 +178,7 @@ export const PickupRequests: React.FC = () => {
               <div>
                 {selectedRequest.image ? (
                   <img
-                    src={`${API_URL.replace('/api', '')}/uploads/${selectedRequest.image}`}
+                    src={getAssetUrl(selectedRequest.image)}
                     alt="Waste"
                     className="w-full h-64 object-cover rounded-lg shadow-md"
                     onError={(e: any) => {
@@ -207,7 +207,7 @@ export const PickupRequests: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-500">Waste Details</p>
                   <p className="text-base text-gray-900">
-                    <span className="font-semibold">{selectedRequest.category}</span> • {selectedRequest.quantity} kg
+                    <span className="font-semibold">{selectedRequest.category}</span> • {selectedRequest.quantity} {selectedRequest.quantity_unit === 'tonne' ? 'tonne' : 'kg'}
                   </p>
                   <p className="text-sm text-gray-600">Price: {selectedRequest.price} TZS/kg</p>
                 </div>

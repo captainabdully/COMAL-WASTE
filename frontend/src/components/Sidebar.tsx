@@ -1,27 +1,30 @@
 import React, { useState } from 'react';
 import { useIsMobile } from '../hooks/use-mobile';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
+  notificationCounts: { pickups: number; vendors: number };
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange, notificationCounts }) => {
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
   const [minimized, setMinimized] = useState(isMobile);
   React.useEffect(() => {
     setMinimized(isMobile);
   }, [isMobile]);
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'vendors', label: 'Vendors', icon: '🏢' },
-    { id: 'pickups', label: 'Pickup Requests', icon: '📦' },
-    { id: 'daily-prices', label: 'Daily Prices', icon: '🏷️' },
-    { id: 'fleet', label: 'Fleet Management', icon: '🚚' },
-    { id: 'financial', label: 'Financial', icon: '💰' },
-    { id: 'reports', label: 'Reports', icon: '📈' },
-    { id: 'settings', label: 'Admin panel', icon: '⚙️' }
+    { id: 'dashboard', label: t('dashboard'), icon: '📊', notifications: 0 },
+    { id: 'vendors', label: t('vendors'), icon: '🏢', notifications: notificationCounts.vendors },
+    { id: 'pickups', label: t('pickupRequests'), icon: '📦', notifications: notificationCounts.pickups },
+    { id: 'daily-prices', label: t('dailyPrices'), icon: '🏷️', notifications: 0 },
+    { id: 'fleet', label: t('fleetManagement'), icon: '🚚', notifications: 0 },
+    { id: 'financial', label: t('financial'), icon: '💰', notifications: 0 },
+    { id: 'reports', label: t('reports'), icon: '📈', notifications: 0 },
+    { id: 'settings', label: t('adminPanel'), icon: '⚙️', notifications: 0 }
   ];
 
   return (
@@ -57,7 +60,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange
             title={item.label}
           >
             <span className="text-xl">{item.icon}</span>
-            {!minimized && <span className="font-medium">{item.label}</span>}
+            {!minimized && <span className="font-medium flex-1 text-left">{item.label}</span>}
+            {!!item.notifications && (
+              <span
+                aria-label={`${item.notifications} new ${item.label}`}
+                className="min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"
+              >
+                {item.notifications > 99 ? '99+' : item.notifications}
+              </span>
+            )}
           </button>
         ))}
       </nav>

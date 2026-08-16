@@ -3,12 +3,15 @@ import 'react-native-gesture-handler';
 import { Slot } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
+import { LanguageProvider } from "../contexts/LanguageContext";
 
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <Slot />
-      <Toast />
+      <LanguageProvider>
+        <Slot />
+        <Toast />
+      </LanguageProvider>
     </SafeAreaProvider>
   );
 }

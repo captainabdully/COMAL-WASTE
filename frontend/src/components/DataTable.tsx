@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Column {
   key: string;
@@ -14,6 +15,7 @@ interface DataTableProps {
 }
 
 export const DataTable: React.FC<DataTableProps> = ({ columns, data, onRowClick, actions }) => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -33,7 +35,7 @@ export const DataTable: React.FC<DataTableProps> = ({ columns, data, onRowClick,
       <div className="p-4 border-b">
         <input
           type="text"
-          placeholder="Search..."
+          placeholder={t('search')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -48,7 +50,7 @@ export const DataTable: React.FC<DataTableProps> = ({ columns, data, onRowClick,
                   {col.label}
                 </th>
               ))}
-              {actions && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>}
+              {actions && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('actions')}</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -75,7 +77,7 @@ export const DataTable: React.FC<DataTableProps> = ({ columns, data, onRowClick,
       </div>
       <div className="px-4 py-3 border-t flex items-center justify-between">
         <div className="text-sm text-gray-700">
-          Showing {startIdx + 1} to {Math.min(startIdx + itemsPerPage, filteredData.length)} of {filteredData.length}
+          {t('showing')} {startIdx + 1} {t('of')} {Math.min(startIdx + itemsPerPage, filteredData.length)} / {filteredData.length}
         </div>
         <div className="flex gap-2">
           <button
@@ -83,14 +85,14 @@ export const DataTable: React.FC<DataTableProps> = ({ columns, data, onRowClick,
             disabled={currentPage === 1}
             className="px-3 py-1 border rounded disabled:opacity-50"
           >
-            Previous
+            {t('previous')}
           </button>
           <button
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
             className="px-3 py-1 border rounded disabled:opacity-50"
           >
-            Next
+            {t('next')}
           </button>
         </div>
       </div>

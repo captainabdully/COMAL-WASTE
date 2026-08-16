@@ -36,9 +36,9 @@ export const loginUser = async (email, password) => {
 };
 
 // FORGOT PASSWORD
-export const forgotPasswordAPI = async (email) => {
+export const forgotPasswordAPI = async (phone_number) => {
   try {
-    const res = await axios.post(`${API_URL}/forgot-password`, { email });
+    const res = await axios.post(`${API_URL}/forgot-password`, { phone_number });
     return res.data;
   } catch (error) {
     throw error.response?.data || { message: "Network error" };
@@ -46,9 +46,9 @@ export const forgotPasswordAPI = async (email) => {
 };
 
 // RESET PASSWORD
-export const resetPasswordAPI = async (email, newPassword, resetToken) => {
+export const resetPasswordAPI = async (phone_number, newPassword) => {
   try {
-    const res = await axios.post(`${API_URL}/reset-password`, { email, newPassword, resetToken });
+    const res = await axios.post(`${API_URL}/reset-password`, { phone_number, newPassword });
     return res.data;
   } catch (error) {
     throw error.response?.data || { message: "Network error" };

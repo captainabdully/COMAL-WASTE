@@ -8,7 +8,7 @@ info:
     email: development@countrymaterial.com
 
 servers:
-  - url: http://localhost:5001
+  - url: http://54.209.99.13
     description: Development server
   - url: https://api.countrymaterial.com
     description: Production server

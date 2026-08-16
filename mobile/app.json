@@ -65,7 +65,12 @@
     },
     "ios": {
     "bundleIdentifier": "com.countrymaterialslimited.skrepachap",
-    "icon": "./assets/images/playstore.png"
+    "icon": "./assets/images/playstore.png",
+    "infoPlist": {
+      "NSAppTransportSecurity": {
+        "NSAllowsArbitraryLoads": true
+      }
+    }
     }
   }
 }

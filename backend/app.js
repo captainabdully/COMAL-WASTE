@@ -36,7 +36,7 @@ await initDB();
 app.use(express.json({ limit: '1mb' }));
 app.use(apiLimiter);
 app.use(cors({
-  origin: (process.env.APP_ORIGINS || 'http://localhost:8080,http://localhost:5173').split(','),
+  origin: (process.env.APP_ORIGINS || 'http://54.209.99.13').split(','),
   credentials: true
 }));
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));

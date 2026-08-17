@@ -195,7 +195,7 @@ export default function CreatePickup() {
             return data.filename || data.imageUrl;
         } catch (error) {
             console.error('Error uploading image:', error);
-            return null;
+            throw error;
         }
     };
 

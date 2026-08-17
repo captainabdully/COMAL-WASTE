@@ -2,6 +2,7 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
@@ -9,6 +10,10 @@ const router = express.Router();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadsPath = path.resolve(__dirname, '../uploads');
+
+// The uploads directory is intentionally not tracked by Git, so ensure it
+// exists after every fresh checkout or deployment.
+fs.mkdirSync(uploadsPath, { recursive: true });
 
 // Configure storage
 const storage = multer.diskStorage({
@@ -25,7 +30,10 @@ const upload = multer({
     storage,
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (_req, file, cb) => {
-        cb(null, ["image/jpeg", "image/png", "image/webp"].includes(file.mimetype));
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.mimetype)) {
+            return cb(new Error('Only JPEG, PNG, and WebP images are supported'));
+        }
+        cb(null, true);
     }
 });
 

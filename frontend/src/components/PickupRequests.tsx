@@ -13,6 +13,9 @@ export const PickupRequests: React.FC = () => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionNotes, setCompletionNotes] = useState('');
   const [processingOrder, setProcessingOrder] = useState<any>(null);
+  const [rejectionOrder, setRejectionOrder] = useState<any>(null);
+  const [rejectionComment, setRejectionComment] = useState('');
+  const [isRejecting, setIsRejecting] = useState(false);
 
   useEffect(() => {
     fetchRequests();
@@ -95,8 +98,41 @@ export const PickupRequests: React.FC = () => {
   };
 
   const handleReject = (request: any) => {
-    // Mapping "Reject" to "cancelled" status
-    updateStatus(request.id, 'cancelled');
+    setRejectionOrder(request.originalData || request);
+    setRejectionComment('');
+  };
+
+  const submitRejection = async () => {
+    if (!rejectionOrder || !rejectionComment.trim()) return;
+
+    try {
+      setIsRejecting(true);
+      const comment = rejectionComment.trim();
+      const response = await api.put(`/pickup-order/${rejectionOrder.id}/status`, {
+        status: 'cancelled',
+        rejection_comment: comment,
+      });
+      const updatedOrder = response.data?.data;
+
+      setRequests(prev => prev.map(request => (
+        request.id === rejectionOrder.id
+          ? { ...request, status: 'cancelled', originalData: updatedOrder || { ...request.originalData, status: 'cancelled', rejection_comment: comment } }
+          : request
+      )));
+      if (selectedRequest?.id === rejectionOrder.id) {
+        setSelectedRequest(updatedOrder || { ...selectedRequest, status: 'cancelled', rejection_comment: comment });
+      }
+
+      setRejectionOrder(null);
+      setRejectionComment('');
+      await showSuccess('Request rejected', `Request ${rejectionOrder.id} was rejected.`);
+      await fetchRequests();
+    } catch (error) {
+      console.error('Error rejecting request:', error);
+      await showError('Could not reject request', error);
+    } finally {
+      setIsRejecting(false);
+    }
   };
 
   const columns = [
@@ -219,6 +255,13 @@ export const PickupRequests: React.FC = () => {
                   </p>
                 </div>
 
+                {selectedRequest.status === 'cancelled' && selectedRequest.rejection_comment && (
+                  <div className="rounded-lg border-l-4 border-red-600 bg-red-50 p-3">
+                    <p className="text-sm font-semibold text-red-800">Rejection reason</p>
+                    <p className="mt-1 text-sm text-red-700">{selectedRequest.rejection_comment}</p>
+                  </div>
+                )}
+
                 <div>
                   <p className="text-sm font-medium text-gray-500">Location</p>
                   <p className="text-base text-gray-900">{selectedRequest.location_name}</p>
@@ -244,10 +287,7 @@ export const PickupRequests: React.FC = () => {
               {selectedRequest.status === 'pending' && (
                 <>
                   <button
-                    onClick={() => {
-                      handleReject({ id: selectedRequest.id });
-                      setSelectedRequest(null);
-                    }}
+                    onClick={() => handleReject(selectedRequest)}
                     className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition border border-red-200"
                   >
                     Reject Request
@@ -311,6 +351,44 @@ export const PickupRequests: React.FC = () => {
                   }`}
               >
                 Confirm Completion
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rejectionOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Reject Request</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Enter a reason for rejecting request #{rejectionOrder.id}. The vendor will be able to see this comment.
+            </p>
+            <textarea
+              autoFocus
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
+              rows={4}
+              placeholder="Enter rejection reason..."
+              value={rejectionComment}
+              onChange={(event) => setRejectionComment(event.target.value)}
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                disabled={isRejecting}
+                onClick={() => {
+                  setRejectionOrder(null);
+                  setRejectionComment('');
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={isRejecting || !rejectionComment.trim()}
+                onClick={submitRejection}
+                className="px-6 py-2 rounded-lg text-white font-medium bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {isRejecting ? 'Rejecting...' : 'Confirm Rejection'}
               </button>
             </div>
           </div>

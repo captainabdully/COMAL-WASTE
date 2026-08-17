@@ -12,7 +12,7 @@ const translations = {
     requestsThisMonth: 'Requests This Month', createdThisMonth: 'Created this month', activeVendors: 'Active Vendors', registeredVendorAccounts: 'Registered vendor accounts', pendingPayment: 'Pending Payment', assignedOrders: 'Assigned orders', completedJobsThisMonth: 'Completed Jobs This Month', completedThisMonth: 'Completed this month',
     sessionExpired: 'Session expired', sessionExpiredMessage: 'Please sign in again to continue.', goToSignIn: 'Go to sign in',
     search: 'Search...', actions: 'Actions', showing: 'Showing', of: 'of', previous: 'Previous', next: 'Next',
-    pending: 'Pending', approved: 'Approved', rejected: 'Rejected', completed: 'Completed', inProgress: 'In Progress', paid: 'Paid', unpaid: 'Unpaid',
+    pending: 'Pending', approved: 'Approved', rejected: 'Rejected', cancelled: 'Cancelled', completed: 'Completed', inProgress: 'In Progress', paid: 'Paid', unpaid: 'Unpaid',
   },
   sw: {
     language: 'Lugha', english: 'Kiingereza', swahili: 'Kiswahili',
@@ -23,7 +23,7 @@ const translations = {
     requestsThisMonth: 'Maombi ya Mwezi Huu', createdThisMonth: 'Yaliyoanzishwa mwezi huu', activeVendors: 'Wauzaji Hai', registeredVendorAccounts: 'Akaunti za wauzaji waliosajiliwa', pendingPayment: 'Malipo Yanayosubiri', assignedOrders: 'Maombi yaliyopangiwa', completedJobsThisMonth: 'Kazi Zilizokamilika Mwezi Huu', completedThisMonth: 'Zilizokamilika mwezi huu',
     sessionExpired: 'Muda wa kikao umeisha', sessionExpiredMessage: 'Tafadhali ingia tena ili kuendelea.', goToSignIn: 'Nenda kuingia',
     search: 'Tafuta...', actions: 'Vitendo', showing: 'Inaonyesha', of: 'kati ya', previous: 'Iliyotangulia', next: 'Inayofuata',
-    pending: 'Inasubiri', approved: 'Imeidhinishwa', rejected: 'Imekataliwa', completed: 'Imekamilika', inProgress: 'Inaendelea', paid: 'Imelipwa', unpaid: 'Haijalipwa',
+    pending: 'Inasubiri', approved: 'Imeidhinishwa', rejected: 'Imekataliwa', cancelled: 'Imeghairiwa', completed: 'Imekamilika', inProgress: 'Inaendelea', paid: 'Imelipwa', unpaid: 'Haijalipwa',
   },
 } as const;
 

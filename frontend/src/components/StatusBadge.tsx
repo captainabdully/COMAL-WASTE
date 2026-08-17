@@ -2,7 +2,7 @@ import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface StatusBadgeProps {
-  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'in-progress' | 'paid' | 'unpaid';
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed' | 'in-progress' | 'paid' | 'unpaid';
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -12,6 +12,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' })
     pending: 'bg-amber-100 text-amber-800',
     approved: 'bg-green-100 text-green-800',
     rejected: 'bg-red-100 text-red-800',
+    cancelled: 'bg-red-100 text-red-800',
     completed: 'bg-blue-100 text-blue-800',
     'in-progress': 'bg-purple-100 text-purple-800',
     paid: 'bg-green-100 text-green-800',

@@ -3,6 +3,7 @@ import { DataTable } from './DataTable';
 import { StatusBadge } from './StatusBadge';
 import { useAuth } from '../contexts/AuthContext';
 import { api, getAssetUrl } from '../lib/api';
+import { formatQuantity } from '../lib/formatters';
 import { showError, showSuccess } from '../lib/alerts';
 
 
@@ -31,7 +32,7 @@ export const PickupRequests: React.FC = () => {
         id: order.id,
         vendor: order.vendor_name || 'Unknown Vendor',
         material: order.category ? (order.category.charAt(0).toUpperCase() + order.category.slice(1)) : 'N/A',
-        quantity: `${order.quantity} ${order.quantity_unit === 'tonne' ? 'tonne' : 'kg'}`,
+        quantity: `${formatQuantity(order.quantity)} ${order.quantity_unit === 'tonne' ? 'tonne' : 'kg'}`,
         date: new Date(order.created_at).toLocaleDateString(),
         status: order.status,
         originalData: order // Keep original data if needed
@@ -243,7 +244,7 @@ export const PickupRequests: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-500">Waste Details</p>
                   <p className="text-base text-gray-900">
-                    <span className="font-semibold">{selectedRequest.category}</span> • {selectedRequest.quantity} {selectedRequest.quantity_unit === 'tonne' ? 'tonne' : 'kg'}
+                    <span className="font-semibold">{selectedRequest.category}</span> • {formatQuantity(selectedRequest.quantity)} {selectedRequest.quantity_unit === 'tonne' ? 'tonne' : 'kg'}
                   </p>
                   <p className="text-sm text-gray-600">Price: {selectedRequest.price} TZS/kg</p>
                 </div>

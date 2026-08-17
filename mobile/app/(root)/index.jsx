@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 
 import { API_URL } from "../../constants/api";
+import { formatQuantity } from "../../constants/formatters";
 import LanguageToggle from "../../components/LanguageToggle";
 import { useLanguage } from "../../contexts/LanguageContext";
 // New styles for pickup layout
@@ -434,7 +435,7 @@ export default function PickupRequests() {
           </View>
           <View style={pickupStyles.pickupItem}>
             <Text style={pickupStyles.pickupLabel}>{t("quantity")}:</Text>
-            <Text style={pickupStyles.pickupValue}>{item.quantity} {item.quantity_unit === 'tonne' ? 'tonne' : 'kg'}</Text>
+            <Text style={pickupStyles.pickupValue}>{formatQuantity(item.quantity)} {item.quantity_unit === 'tonne' ? 'tonne' : 'kg'}</Text>
           </View>
           <View style={pickupStyles.pickupItem}>
             <Text style={pickupStyles.pickupLabel}>{t("price")}:</Text>

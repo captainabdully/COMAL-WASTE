@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_URL } from "../../../constants/api";
+import { formatQuantity } from "../../../constants/formatters";
 
 export default function PickupDetails() {
     const { id } = useLocalSearchParams();
@@ -160,7 +161,7 @@ export default function PickupDetails() {
                     </View>
 
                     <DetailRow label="Category" value={order.category} />
-                    <DetailRow label="Quantity" value={`${order.quantity} ${order.quantity_unit === 'tonne' ? 'tonne' : 'kg'}`} />
+                    <DetailRow label="Quantity" value={`${formatQuantity(order.quantity)} ${order.quantity_unit === 'tonne' ? 'tonne' : 'kg'}`} />
                     <DetailRow label="Price" value={`${order.price} Tsh`} />
                     <DetailRow label="Dropping Point" value={order.location_name} />
                     <DetailRow label="Vendor Phone" value={order.phone_number} />

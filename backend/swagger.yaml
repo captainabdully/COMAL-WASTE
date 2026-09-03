@@ -10,7 +10,7 @@ info:
 servers:
   - url: http://54.209.99.13
     description: Development server
-  - url: https://api.countrymaterial.com
+  - url: https://api.countrymaterial.com/swagger-ui/index.html
     description: Production server
 
 paths:

@@ -12,8 +12,7 @@ import { API_BASE_URL } from "./api";
 // REGISTER USER
 export const registerUser = async (data) => {
   try {
-    const res = await axios.post(`${API_URL}/users`, data);
-    // const res = await axios.post(`${API_URL2}/users`, data);
+    const res = await axios.post(`${API_BASE_URL}/users`, data);
 
     return res.data; // return backend response
   } catch (error) {

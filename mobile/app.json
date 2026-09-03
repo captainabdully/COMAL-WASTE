@@ -27,6 +27,8 @@
       "expo-build-properties",
       {
         "android": {
+          "compileSdkVersion": 36,
+          "targetSdkVersion": 36,
           "usesCleartextTraffic": true,
           "enableProguardInReleaseBuilds": true,
           "enableShrinkResourcesInReleaseBuilds": true

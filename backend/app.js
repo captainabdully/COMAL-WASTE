@@ -16,7 +16,7 @@ import setupRoutes from "./routes/setupRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { apiLimiter, authLimiter } from './middleware/rateLimiter.js';
+import { apiLimiter } from './middleware/rateLimiter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,7 +47,7 @@ app.use('/api/user-roles', roleRoutes);
 app.use('/api/dropping-point', droppingPointRoutes);
 app.use('/api/daily-price', priceRoutes);
 app.use('/api/pickup-order', orderRoutes);
-app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/setup", setupRoutes);
 app.use("/api/upload", uploadRoutes);
 

@@ -3,11 +3,12 @@ import authController from "../controllers/authController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
 import { login } from "../controllers/authController.js";
+import { authLimiter, passwordRecoveryLimiter } from "../middleware/rateLimiter.js";
 
 
 const router = express.Router();
 
-router.post("/login", login);
+router.post("/login", authLimiter, login);
 router.post("/refresh-token", authController.refreshToken);
 router.get(
   "/admin-only",
@@ -31,8 +32,8 @@ router.get(
 );
 
 // router.post("/login", login);
-router.post("/forgot-password", authController.forgotPassword);
-router.post("/reset-password", authController.resetPassword);
+router.post("/forgot-password", passwordRecoveryLimiter, authController.forgotPassword);
+router.post("/reset-password", passwordRecoveryLimiter, authController.resetPassword);
 router.post("/test-email", authMiddleware, authorizeRoles("admin"), authController.testEmail);
 
 export default router;

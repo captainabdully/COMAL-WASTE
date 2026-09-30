@@ -16,5 +16,13 @@ export const authLimiter = rateLimit({
   ...baseOptions,
   windowMs: 15 * 60 * 1000,
   limit: 10,
+  skipSuccessfulRequests: true,
   message: { message: "Too many authentication attempts. Please try again later." },
+});
+
+export const passwordRecoveryLimiter = rateLimit({
+  ...baseOptions,
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  message: { message: "Too many password recovery attempts. Please try again later." },
 });

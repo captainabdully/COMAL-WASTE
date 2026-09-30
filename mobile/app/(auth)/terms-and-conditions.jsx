@@ -33,10 +33,11 @@ const TermsAndConditions = () => {
         • Using the materials for any commercial purpose or for any public display{'\n'}
         • Attempting to decompile or reverse engineer any software contained on the application{'\n'}
         • Removing any copyright or other proprietary notations from the materials{'\n'}
+        • All right are observed by the law and regulations of Tanzania {'\n'}
         • Transferring the materials to another person or "mirroring" the materials on any other server
       </Text>
 
-      <Text style={styles.heading}>3. Disclaimer</Text>
+      <Text style={styles.heading}>3. Disclaimer for the vendor!</Text>
       <Text style={styles.body}>
         The materials on Country Material Limited's application are provided on an 'as is' basis. Country Material Limited makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
       </Text>

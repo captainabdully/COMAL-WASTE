@@ -1,7 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ChevronDown, Heart, LayoutDashboard, Mail, MapPin, Menu, Phone, Quote, Star, X } from 'lucide-react';
+import { ArrowRight, ChevronDown, Heart, Mail, MapPin, Menu, Phone, Quote, Star, X } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
+import heroImage from '../../images/heroImage.jpeg';
+import skrepachapImage from '../../images/skrepachap.jpeg';
+import appLogo from '../../images/APP (1).png';
+import heavyImage from '../../images/heavy.jpeg';
+import lightImage from '../../images/light.jpeg';
+import castImage from '../../images/cast.jpeg';
+import mixerImage from '../../images/mixer.jpeg';
+import skepa1Image from '../../images/skrepa1.jpeg';
+import skepa2Image from '../../images/skrepa2.jpeg';
+import skepa3Image from '../../images/skrepa3.jpeg';
 
 // Brand glyphs were dropped from lucide-react, so these three are inlined (same 24px stroke style).
 const Svg = ({ children }) => (
@@ -11,22 +21,21 @@ const Linkedin = () => <Svg><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2
 const Instagram = () => <Svg><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></Svg>;
 const Twitter = () => <Svg><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></Svg>;
 
-const u = (id, w = 900) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80`;
 const IMG = {
-  hero: u('photo-1532996122724-e3c354a0b15b', 1000),
-  solutions: u('photo-1558618666-fcd25c85cd64', 1000),
-  heavy: u('photo-1567789884554-0b844b597180'),
-  light: u('photo-1605600659908-0ef719419d41'),
-  cast: u('photo-1504917595217-d4dc5ebe6122'),
-  mixer: u('photo-1530587191325-3db32d826c18'),
-  p1: u('photo-1611284446314-60a58ac0deb9'),
-  p2: u('photo-1582719471384-894fbb16e074'),
-  p3: u('photo-1569163139599-0f4517e36f51'),
+  hero: heroImage,
+  solutions: skrepachapImage,
+  heavy: heavyImage,
+  light: lightImage,
+  cast: castImage,
+  mixer: mixerImage,
+  p1: skepa1Image,
+  p2: skepa2Image,
+  p3: skepa3Image,
 };
 
-// Photo with a neutral fallback so a blocked/removed image never leaves a hole.
+// Keep the background and alt text visible if an image cannot load.
 const Photo = ({ src, alt, className = '' }) => (
-  <img src={src} alt={alt} loading="lazy" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} className={`bg-gradient-to-br from-slate-200 to-slate-300 ${className}`} />
+  <img key={src} src={src} alt={alt} loading="lazy" className={`bg-gradient-to-br from-slate-200 to-slate-300 ${className}`} />
 );
 
 const links = [['Solutions', '#solutions'], ['Expertise', '#services'], ['Projects', '#realisations'], ['Contact', '#contact']];
@@ -48,9 +57,9 @@ const services = [
 const stats = [['+10', 'Dropping points'], ['98%', 'Happy vendors'], ['+30%', 'Better payout'], ['100%', 'Recycled']];
 
 const projects = [
-  ['Warehouse clear-out', '12 tonnes of mixed steel recovered in one day.', IMG.p1],
-  ['Garage & workshop', 'Weekly collections of light and cast scrap.', IMG.p2],
-  ['Construction site', 'Rebar and structural offcuts, weighed on site.', IMG.p3],
+  ['Tanzania Port Authority (TPA)', 'More than 1000 metric tonnes of scrap metal recovered in one day.', IMG.p1],
+  ['Orxy Cylinder Project', 'Weekly collections of scrap metals.', IMG.p2],
+  ['Bagamoyo Sugar', '100+ Metric tonnes of scrap metals collection, weighed on site.', IMG.p3],
 ];
 
 const testimonials = [
@@ -98,7 +107,7 @@ export default function Landing() {
       <nav className="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-5 h-20 flex items-center justify-between">
           <a href="#top" className="flex items-center gap-2.5">
-            <span className="w-10 h-10 rounded-xl bg-green-700 text-white flex items-center justify-center"><LayoutDashboard className="w-5 h-5" /></span>
+            <img src={appLogo} alt="Skrepa Chap logo" className="w-10 h-10 rounded-xl object-contain" />
             <span className="text-xl font-bold tracking-tight">Skrepa Chap</span>
           </a>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium">
@@ -124,7 +133,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-5 grid lg:grid-cols-2 gap-16 items-center">
           <div>
             <span className="inline-block rounded-full bg-green-50 text-green-800 text-sm font-semibold px-4 py-1.5 mb-6">Scrap metal pickup, made simple</span>
-            <h1 className="text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05]">Turn your scrap into <span className="text-green-700">instant cash</span></h1>
+            <h1 className="text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05]">Sustainably <span className="text-green-700">Building the future!</span></h1>
             <p className="mt-6 text-lg text-slate-600 max-w-xl">See today’s prices, request a free pickup in minutes and track every order. Less hauling, better payouts, and a cleaner city — from any phone or computer.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to={cta.to} className={btn}>{cta.label}<ArrowRight className="w-4 h-4" /></Link>
@@ -145,11 +154,11 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-5 grid lg:grid-cols-2 gap-16 items-center">
           <div className="relative">
             <div className="absolute inset-y-8 -left-6 w-2/3 rounded-[2rem] bg-yellow-400" />
-            <Photo src={IMG.solutions} alt="Collection truck loaded with scrap" className="relative z-10 w-full aspect-[4/3] object-cover rounded-[2rem] shadow-xl" />
+            <Photo src={IMG.solutions} alt="Skrepa Chap mobile app" className="relative z-10 block w-full h-auto rounded-[2rem] shadow-xl" />
           </div>
           <div>
             <p className="text-green-700 font-semibold mb-3">Solutions</p>
-            <h2 className="text-4xl font-bold tracking-tight">A smarter way to sell scrap</h2>
+            <h2 className="text-4xl font-bold tracking-tight">Skrepa chap Mobile App!!</h2>
             <ol className="mt-10 space-y-8">
               {solutions.map(([n, t, d]) => (
                 <li key={n} className="flex gap-6">
@@ -255,7 +264,7 @@ export default function Landing() {
             <h2 className="text-4xl font-bold tracking-tight">Let’s talk about your scrap</h2>
             <p className="mt-4 text-slate-300 max-w-md">Large load, regular contract or just a question? Tell us and we’ll get back to you.</p>
             <ul className="mt-10 space-y-6">
-              {[[Phone, 'Phone', '+255 655'], [Mail, 'Email', 'info@countrymaterial.com'], [MapPin, 'Address', 'Country Material Limited, Tanzania']].map(([Icon, l, v]) => (
+              {[[Phone, 'Phone', '+255 768 500 555'], [Mail, 'Email', 'info@countrymaterial.com'], [MapPin, 'Address', 'Country Material Limited, Tanzania']].map(([Icon, l, v]) => (
                 <li key={l} className="flex items-center gap-4">
                   <span className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center"><Icon className="w-5 h-5" /></span>
                   <span><span className="block text-sm text-slate-400">{l}</span>{v}</span>
@@ -292,7 +301,7 @@ export default function Landing() {
       <footer className="bg-green-700 text-white">
         <div className="max-w-7xl mx-auto px-5 py-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
           <div>
-            <div className="flex items-center gap-2.5"><span className="w-10 h-10 rounded-xl bg-white text-green-700 flex items-center justify-center"><LayoutDashboard className="w-5 h-5" /></span><span className="text-xl font-bold">Skrepa Chap</span></div>
+            <div className="flex items-center gap-2.5"><img src={appLogo} alt="Skrepa Chap logo" className="w-10 h-10 rounded-xl object-contain" /><span className="text-xl font-bold">Skrepa Chap</span></div>
             <p className="mt-4 text-green-100 text-sm max-w-xs">Scrap metal pickup by Country Material Limited. Better prices, less hassle.</p>
             <div className="mt-5 flex gap-3">{[[Linkedin, 'LinkedIn'], [Instagram, 'Instagram'], [Twitter, 'Twitter']].map(([I, l]) => (
               <a key={l} href="#top" aria-label={l} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition-all duration-300 hover:bg-white/20 hover:scale-110"><I /></a>))}</div>

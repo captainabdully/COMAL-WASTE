@@ -8,6 +8,8 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const target = env.VITE_PROXY_TARGET || 'http://54.209.99.13';
   return {
+    // Served from http://<server>/web/ in production; override with VITE_BASE=/ for a root deploy.
+    base: env.VITE_BASE || (mode === 'production' ? '/web/' : '/'),
     plugins: [react()],
     server: {
       port: 5174,

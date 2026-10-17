@@ -23,7 +23,8 @@ router.post("/login", login);
 router.post("/", createUser);
 router.get("/", authMiddleware, allowRoles("admin", "manager"), getAllUsers);
 router.get("/:user_id", authMiddleware, getUserById);
-router.put("/:user_id", authMiddleware, allowRoles("admin"), updateUser);
+// Admins may edit anyone; other users may edit only themselves (enforced in the controller).
+router.put("/:user_id", authMiddleware, updateUser);
 router.delete("/:user_id", authMiddleware, allowRoles("admin"), deleteUser);
 router.post("/:user_id/change-password", authMiddleware, changePassword);
 // router.get("/:user_id/with-roles", authMiddleware, getUserWithRoles);

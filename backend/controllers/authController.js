@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { sql } from "../config/db.js";
 import { sendPasswordResetEmail } from "../config/email.js";
 import dotenv from "dotenv";
+import { JWT_EXPIRES_IN, JWT_REFRESH_EXPIRES_IN } from "../config/jwt.js";
 
 dotenv.config(); // load environment variables
 
@@ -63,14 +64,14 @@ export const login = async (req, res) => {
         roles: userRoles
       },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: JWT_EXPIRES_IN }
     );
 
     // Create Refresh Token
     const refreshToken = jwt.sign(
       { user_id: user.user_id },
       process.env.JWT_REFRESH_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: JWT_REFRESH_EXPIRES_IN }
     );
 
     res.status(200).json({
@@ -103,25 +104,33 @@ export const refreshToken = async (req, res) => {
     if (!refreshToken) {
       return res.status(400).json({ message: "Refresh token required" });
     }
+    if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+      return res.status(500).json({ message: "Server misconfiguration" });
+    }
 
-    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
-      if (err) {
-        return res.status(403).json({ message: "Invalid refresh token" });
-      }
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    } catch {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
 
-      // Create new access token
-      const newAccessToken = jwt.sign(
-        { user_id: decoded.user_id },
-        process.env.JWT_SECRET,
-        { expiresIn: "15m" }
-      );
+    // Re-read the user so deleted accounts are refused and role changes take effect.
+    const rows = await sql`SELECT user_id, email FROM users WHERE user_id = ${decoded.user_id} LIMIT 1`;
+    if (rows.length === 0) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+    const roleRows = await sql`SELECT user_role FROM user_roles WHERE user_id = ${decoded.user_id}`;
 
-      res.status(200).json({
-        message: "Token refreshed",
-        token: newAccessToken
-      });
-    });
+    // The access token carries the same claims as at login. Without `roles`
+    // every role-protected route would answer 403 after a refresh.
+    const newAccessToken = jwt.sign(
+      { user_id: rows[0].user_id, email: rows[0].email, roles: roleRows.map((r) => r.user_role) },
+      process.env.JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
 
+    res.status(200).json({ message: "Token refreshed", token: newAccessToken });
   } catch (error) {
     console.error("Refresh token error:", error);
     res.status(500).json({ message: "Server error" });

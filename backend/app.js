@@ -33,12 +33,14 @@ if (process.env.TRUST_PROXY === 'true') app.set('trust proxy', 1);
 await initDB();
 
 // Middleware
-app.use(express.json({ limit: '1mb' }));
-app.use(apiLimiter);
+// CORS must come first so that rate-limit (429) and error responses still carry
+// CORS headers; otherwise browsers report them as an opaque network error.
 app.use(cors({
   origin: (process.env.APP_ORIGINS || 'http://54.209.99.13').split(','),
   credentials: true
 }));
+app.use(apiLimiter);
+app.use(express.json({ limit: '1mb' }));
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Routes

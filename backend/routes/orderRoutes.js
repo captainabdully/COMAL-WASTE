@@ -7,11 +7,12 @@ const router = express.Router();
 
 router.post('/', authMiddleware, allowRoles("vendor"), orderController.createPickupOrder);
 router.get('/', authMiddleware, allowRoles("admin", "manager"), orderController.getAllOrders);
+// Static paths must be registered before '/:vendor_id' or they are swallowed by it.
+router.get('/history/', authMiddleware, allowRoles("admin", "manager"), orderController.getOrderHistory);
 router.get('/:vendor_id', authMiddleware, allowRoles("admin", "manager", "vendor"), orderController.getVendorOrders);
 router.put('/:id/status', authMiddleware, allowRoles("admin", "manager"), orderController.updateOrderStatus);
 router.post('/completion', authMiddleware, allowRoles("admin", "manager"), orderController.recordOrderCompletion);
 router.get('/order/:id', authMiddleware, allowRoles("admin", "manager", "vendor"), orderController.getOrderById);
-router.get('/history/', authMiddleware, allowRoles("admin", "manager"), orderController.getOrderHistory);
 
 export default router;
 

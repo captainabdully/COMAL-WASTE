@@ -167,17 +167,40 @@ export const getUserById = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { user_id } = req.params;
-    const { name, phone_number, user_category } = req.body;
+    const roles = req.user.roles || [];
+    const isAdmin = roles.includes("admin");
+    if (!isAdmin && req.user.user_id !== user_id) {
+      return res.status(403).json({ message: "Forbidden: you can only edit your own profile" });
+    }
 
-    await sql`
+    // Apps send `phone`; the API field is `phone_number`. Omitted fields keep their value.
+    const clean = (v) => (typeof v === "string" && v.trim() ? v.trim() : null);
+    const name = clean(req.body.name);
+    const phone = clean(req.body.phone_number ?? req.body.phone);
+    const email = clean(req.body.email)?.toLowerCase() ?? null;
+    // Category is an admin-only attribute.
+    const category = isAdmin ? clean(req.body.user_category) : null;
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: "Please enter a valid email" });
+    }
+    if (email) {
+      const taken = await sql`SELECT 1 FROM users WHERE LOWER(email) = ${email} AND user_id <> ${user_id} LIMIT 1`;
+      if (taken.length > 0) return res.status(400).json({ message: "Email already exists" });
+    }
+
+    const updated = await sql`
       UPDATE users SET
-        name = ${name},
-        phone_number = ${phone_number},
-        user_category = ${user_category}
+        name = COALESCE(${name}, name),
+        phone_number = COALESCE(${phone}, phone_number),
+        email = COALESCE(${email}, email),
+        user_category = COALESCE(${category}, user_category)
       WHERE user_id = ${user_id}
+      RETURNING user_id, name, email, phone_number, user_category
     `;
+    if (updated.length === 0) return res.status(404).json({ message: "User not found" });
 
-    res.status(200).json({ message: "User updated successfully" });
+    res.status(200).json({ message: "User updated successfully", user: updated[0] });
 
   } catch (error) {
     console.error("Update user error:", error);

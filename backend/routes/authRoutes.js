@@ -9,7 +9,7 @@ import { authLimiter, passwordRecoveryLimiter } from "../middleware/rateLimiter.
 const router = express.Router();
 
 router.post("/login", authLimiter, login);
-router.post("/refresh-token", authController.refreshToken);
+router.post("/refresh-token", authLimiter, authController.refreshToken);
 router.get(
   "/admin-only",
   authMiddleware,

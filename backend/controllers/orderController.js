@@ -142,6 +142,24 @@ class OrderController {
     }
   }
 
+  async cancelOwnOrder(req, res) {
+    try {
+      const { id } = req.params;
+      const order = await orderService.getOrderById(id);
+      if (!order || order.vendor_id !== req.user.user_id) {
+        return res.status(404).json({ message: "Pickup order not found" });
+      }
+      const updated = await orderService.cancelOrderByVendor(id, req.user.user_id);
+      if (!updated) {
+        return res.status(409).json({ message: "Only pending requests can be cancelled" });
+      }
+      res.status(200).json({ message: "Pickup request cancelled", data: updated });
+    } catch (error) {
+      console.error("Error cancelling pickup order:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
   async recordOrderCompletion(req, res) {
     try {
       const { order_id, completion_notes } = req.body;

@@ -246,7 +246,7 @@ export const PickupRequests: React.FC = () => {
                   <p className="text-base text-gray-900">
                     <span className="font-semibold">{selectedRequest.category}</span> • {formatQuantity(selectedRequest.quantity)} {selectedRequest.quantity_unit === 'tonne' ? 'tonne' : 'kg'}
                   </p>
-                  <p className="text-sm text-gray-600">Price: {selectedRequest.price} TZS/kg</p>
+                  <p className="text-sm text-gray-600">Estimated total: TZS {Number(selectedRequest.price).toLocaleString()}</p>
                 </div>
 
                 <div>

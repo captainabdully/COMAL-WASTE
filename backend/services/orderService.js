@@ -68,6 +68,20 @@ class OrderService {
     return updated[0];
   }
 
+  // Vendor withdraws their own order. Only allowed while it is still pending.
+  async cancelOrderByVendor(id, vendorId) {
+    const updated = await sql`
+      UPDATE pickup_order
+      SET status = 'cancelled',
+          rejection_comment = 'Cancelled by vendor',
+          rejection_comment_by = ${vendorId},
+          rejection_commented_at = CURRENT_TIMESTAMP
+      WHERE id = ${id} AND vendor_id = ${vendorId} AND status = 'pending'
+      RETURNING *
+    `;
+    return updated[0];
+  }
+
   async recordOrderCompletion(completionData) {
     const { order_id, completed_by, completion_notes } = completionData;
     

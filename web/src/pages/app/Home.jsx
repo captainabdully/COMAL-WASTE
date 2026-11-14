@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Box, Eye, Loader2, Plus, RefreshCw, Search, TrendingUp } from 'lucide-react';
 import { api, imageUrl } from '../../lib/api';
-import { formatQuantity } from '../../lib/format';
+import { formatQuantity, removalNotice } from '../../lib/format';
 import { useAuth } from '../../lib/AuthContext';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { PageHeader, PageLoader, StatusBadge, btnCls, cardCls, ghostBtnCls, inputCls } from '../../components/Shell';
@@ -102,7 +102,7 @@ export default function Home() {
             <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="text-left text-xs uppercase tracking-wider text-slate-500 bg-slate-50">
-                  <tr>{[t('order'), t('category'), t('quantity'), t('price'), t('dropPoint'), t('phone'), t('created'), 'Status', ''].map((h, i) => <th key={i} className="px-5 py-3 font-semibold whitespace-nowrap">{h}</th>)}</tr>
+                  <tr>{[t('order'), t('category'), t('quantity'), 'Est. total', t('dropPoint'), t('phone'), t('created'), 'Status', ''].map((h, i) => <th key={i} className="px-5 py-3 font-semibold whitespace-nowrap">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {shown.map((p) => (
@@ -116,7 +116,7 @@ export default function Home() {
                       <td className="px-5 py-3 whitespace-nowrap text-slate-500">{when(p.created_at)}</td>
                       <td className="px-5 py-3">
                         <StatusBadge status={p.status} label={t(p.status)} />
-                        {p.status === 'cancelled' && p.rejection_comment && <p className="mt-1 text-xs text-red-700 max-w-[14rem]" title={p.rejection_comment}>{t('rejectionReason')}: {p.rejection_comment}</p>}
+                        {p.status === 'cancelled' && <p className="mt-1 text-xs text-red-700 max-w-[14rem]" title={p.rejection_comment}>{p.rejection_comment_by === p.vendor_id ? 'Cancelled by you' : `${t('rejectionReason')}: ${p.rejection_comment ?? ''}`}<br /><span className="text-slate-400">{removalNotice(p)}</span></p>}
                       </td>
                       <td className="px-5 py-3">{actions(p)}</td>
                     </tr>
@@ -134,12 +134,12 @@ export default function Home() {
                     <div className="flex-1 min-w-0"><p className="font-semibold truncate">{t('order')}: {p.order_id}</p><div className="mt-1"><StatusBadge status={p.status} label={t(p.status)} /></div></div>
                   </div>
                   <dl className="mt-3 space-y-1 text-sm">
-                    {[[t('category'), p.category], [t('quantity'), `${formatQuantity(p.quantity)} ${unit(p.quantity_unit)}`], [t('price'), `Tsh ${Number(p.price).toLocaleString()}`], [t('dropPoint'), p.location_name], [t('phone'), p.phone_number], [t('created'), when(p.created_at)]].map(([k, v]) => (
+                    {[[t('category'), p.category], [t('quantity'), `${formatQuantity(p.quantity)} ${unit(p.quantity_unit)}`], ['Est. total', `Tsh ${Number(p.price).toLocaleString()}`], [t('dropPoint'), p.location_name], [t('phone'), p.phone_number], [t('created'), when(p.created_at)]].map(([k, v]) => (
                       <div key={k} className="flex justify-between gap-3"><dt className="text-slate-500">{k}</dt><dd className="text-right break-words min-w-0">{v}</dd></div>
                     ))}
                   </dl>
                   {p.comment && <p className="mt-2 text-sm italic text-slate-500">{t('note')}: {p.comment}</p>}
-                  {p.status === 'cancelled' && p.rejection_comment && <p className="mt-2 text-sm rounded-xl bg-red-50 text-red-800 p-3"><b>{t('rejectionReason')}:</b> {p.rejection_comment}</p>}
+                  {p.status === 'cancelled' && <p className="mt-2 text-sm rounded-xl bg-red-50 text-red-800 p-3">{p.rejection_comment_by === p.vendor_id ? <b>Cancelled by you</b> : <><b>{t('rejectionReason')}:</b> {p.rejection_comment}</>}<span className="block mt-1 text-xs text-red-600">{removalNotice(p)}</span></p>}
                   <div className="mt-3">{actions(p)}</div>
                 </li>
               ))}

@@ -3,7 +3,7 @@ import { DataTable } from './DataTable';
 import { StatusBadge } from './StatusBadge';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../lib/api';
-import { showError, showInfo, showSuccess } from '../lib/alerts';
+import { showError, showSuccess } from '../lib/alerts';
 
 export const VendorManagement: React.FC = () => {
   const { token } = useAuth();
@@ -40,8 +40,6 @@ export const VendorManagement: React.FC = () => {
         contact: vendor.phone_number,
         email: vendor.email,
         status: 'active', // Default status as backend doesn't show it yet
-        totalSales: 0, // Placeholder
-        image: 'https://ui-avatars.com/api/?name=' + vendor.name // Placeholder avatar
       }));
 
       setVendors(vendorList);
@@ -79,14 +77,6 @@ export const VendorManagement: React.FC = () => {
     }
   ];
 
-  const handleApprove = async (vendor: any) => {
-    await showInfo('Not available', `Vendor approval for ${vendor.name} is not implemented by the API yet.`);
-  };
-
-  const handleReject = async (vendor: any) => {
-    await showInfo('Not available', `Vendor rejection for ${vendor.name} is not implemented by the API yet.`);
-  };
-
   const handleViewDetails = (vendor: any) => {
     setSelectedVendor(vendor);
     setShowModal(true);
@@ -111,22 +101,6 @@ export const VendorManagement: React.FC = () => {
           columns={columns}
           data={vendors}
           onRowClick={handleViewDetails}
-          actions={(row) => (
-            <div className="flex gap-2">
-              <button
-                onClick={(e) => { e.stopPropagation(); handleApprove(row); }}
-                className="text-green-600 hover:text-green-800"
-              >
-                Approve
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); handleReject(row); }}
-                className="text-red-600 hover:text-red-800"
-              >
-                Reject
-              </button>
-            </div>
-          )}
         />
       )}
 
@@ -138,13 +112,14 @@ export const VendorManagement: React.FC = () => {
             </h3>
             {selectedVendor ? (
               <div className="space-y-4">
-                <img src={selectedVendor.image} alt={selectedVendor.name} className="w-32 h-32 rounded-full mx-auto" />
+                <div className="w-24 h-24 rounded-full mx-auto bg-green-100 text-green-700 flex items-center justify-center text-3xl font-bold">
+                  {(selectedVendor.name || '?').split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()}
+                </div>
                 <p><strong>ID:</strong> {selectedVendor.id}</p>
                 <p><strong>Name:</strong> {selectedVendor.name}</p>
                 <p><strong>Contact:</strong> {selectedVendor.contact}</p>
                 <p><strong>Email:</strong> {selectedVendor.email}</p>
                 <p><strong>Status:</strong> <StatusBadge status={selectedVendor.status} /></p>
-                <p><strong>Total Sales:</strong> TZS {selectedVendor.totalSales.toLocaleString()}</p>
               </div>
             ) : (
               <form onSubmit={handleAddVendor} className="space-y-4">

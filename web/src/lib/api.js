@@ -106,6 +106,7 @@ export const api = {
     const r = await request(`/pickup-order/order/${id}`);
     return r?.data || r;
   },
+  cancelOrder: (id) => request(`/pickup-order/${id}/cancel`, { method: 'POST' }),
   createOrder: (body) => request('/pickup-order', { method: 'POST', body }),
   upload: async (file) => {
     const form = new FormData();

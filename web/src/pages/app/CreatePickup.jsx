@@ -16,6 +16,7 @@ export default function CreatePickup() {
   const prefill = useLocation().state || {};
   const [points, setPoints] = useState([]);
   const [price, setPrice] = useState(null);
+  const [priceDate, setPriceDate] = useState('');
   const [priceLoading, setPriceLoading] = useState(false);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState('');
@@ -46,6 +47,7 @@ export default function CreatePickup() {
         if (cancelled) return;
         const m = prices.find((p) => String(p.dropping_point_id) === String(form.dropping_point_id) && String(p.category).toLowerCase() === form.category.toLowerCase());
         setPrice(m ? Number(m.price) : null);
+        setPriceDate(m?.effective_date ? new Date(m.effective_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '');
       })
       .catch(() => !cancelled && setPrice(null))
       .finally(() => !cancelled && setPriceLoading(false));
@@ -159,15 +161,15 @@ export default function CreatePickup() {
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between gap-3"><dt className="text-slate-500">Dropping point</dt><dd className="font-semibold text-right">{point?.name || '—'}</dd></div>
             <div className="flex justify-between gap-3"><dt className="text-slate-500">Category</dt><dd className="font-semibold">{form.category ? cap(form.category) : '—'}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-slate-500">Price today</dt>
-              <dd className="font-semibold">{priceLoading ? <Loader2 className="w-4 h-4 animate-spin inline" /> : price === null ? '—' : `Tsh ${price.toLocaleString()} / kg`}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-slate-500">Current price</dt>
+              <dd className="font-semibold">{priceLoading ? <Loader2 className="w-4 h-4 animate-spin inline" /> : price === null ? '—' : <>Tsh {price.toLocaleString()} / kg{priceDate && <span className="block text-xs font-normal text-slate-400">set {priceDate}</span>}</>}</dd></div>
             <div className="flex justify-between gap-3"><dt className="text-slate-500">Weight</dt><dd className="font-semibold">{qtyKg ? `${qtyKg.toLocaleString()} kg` : '—'}</dd></div>
           </dl>
           {form.dropping_point_id && form.category && !priceLoading && price === null && (
             <p className="mt-4 rounded-xl bg-red-50 text-red-700 text-sm p-3">No current price for this dropping point and category.</p>
           )}
           <div className="mt-5 pt-5 border-t border-slate-100 flex items-end justify-between">
-            <span className="text-slate-500">Estimated total</span>
+            <span className="text-slate-500">Estimated total<span className="block text-xs text-slate-400">Final price confirmed on pickup</span></span>
             <span className="text-2xl font-bold text-green-700">Tsh {total.toLocaleString()}</span>
           </div>
           <PrimaryButton type="submit" loading={loading} className="w-full mt-6">{loading ? 'Creating...' : 'Create Pickup Request'}</PrimaryButton>

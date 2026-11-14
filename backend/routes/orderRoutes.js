@@ -11,6 +11,7 @@ router.get('/', authMiddleware, allowRoles("admin", "manager"), orderController.
 router.get('/history/', authMiddleware, allowRoles("admin", "manager"), orderController.getOrderHistory);
 router.get('/:vendor_id', authMiddleware, allowRoles("admin", "manager", "vendor"), orderController.getVendorOrders);
 router.put('/:id/status', authMiddleware, allowRoles("admin", "manager"), orderController.updateOrderStatus);
+router.post('/:id/cancel', authMiddleware, allowRoles("vendor"), orderController.cancelOwnOrder);
 router.post('/completion', authMiddleware, allowRoles("admin", "manager"), orderController.recordOrderCompletion);
 router.get('/order/:id', authMiddleware, allowRoles("admin", "manager", "vendor"), orderController.getOrderById);
 

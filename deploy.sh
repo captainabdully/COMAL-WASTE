@@ -16,6 +16,16 @@ PARTS=("$@"); [ ${#PARTS[@]} -eq 0 ] && PARTS=(backend frontend web nginx)
 want() { for p in "${PARTS[@]}"; do [ "$p" = "$1" ] && return 0; done; return 1; }
 step() { printf '\n\033[1;32m==> %s\033[0m\n' "$*"; }
 
+# Small instances run out of memory on npm ci / vite build ("Killed"). Make sure there is swap.
+if [ "$(awk '/SwapTotal/ {print $2}' /proc/meminfo)" -lt 1000000 ]; then
+  step "Adding 2G swap (low-memory server)"
+  if [ ! -f /swapfile ]; then
+    sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile >/dev/null
+  fi
+  sudo swapon /swapfile 2>/dev/null || true
+  grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab >/dev/null
+fi
+
 cd "$REPO"
 node_major=$(node -p 'process.versions.node.split(".")[0]')
 [ "$node_major" -ge 18 ] || { echo "Node 18+ required (found $(node -v))"; exit 1; }
@@ -43,7 +53,7 @@ if want frontend; then
   step "Admin frontend"
   cd "$REPO/frontend"
   npm ci
-  npm run build
+  NODE_OPTIONS=--max-old-space-size=1024 npm run build
   sudo mkdir -p /var/www/comal
   sudo rsync -a --delete dist/ /var/www/comal/
 fi

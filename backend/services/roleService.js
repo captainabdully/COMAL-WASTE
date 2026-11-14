@@ -1,11 +1,13 @@
 import { sql } from '../config/db.js';
 
 class RoleService {
+  async assertRoleExists(role) {
+    const found = await sql`SELECT 1 FROM roles WHERE name = ${role}`;
+    if (!found.length) throw new Error('Invalid role. Create it under Roles first.');
+  }
+
   async createUserRole(user_id, role) {
-    const validRoles = ['vendor', 'manager', 'admin'];
-    if (!validRoles.includes(role)) {
-      throw new Error('Invalid role. Must be: vendor, manager, or admin');
-    }
+    await this.assertRoleExists(role);
 
     const result = await sql`
       INSERT INTO user_roles (user_id, user_role)
@@ -22,10 +24,7 @@ class RoleService {
   }
 
   async updateUserRole(user_id, role) {
-    const validRoles = ["vendor", "manager", "admin"];
-    if (!validRoles.includes(role)) {
-      throw new Error('Invalid role. Must be: vendor, manager, or admin');
-    }
+    await this.assertRoleExists(role);
 
     const updated = await sql`
       UPDATE user_roles

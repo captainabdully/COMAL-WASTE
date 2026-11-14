@@ -1,6 +1,7 @@
 import {neon} from '@neondatabase/serverless';
 import { setDefaultAutoSelectFamily } from 'node:net';
 import "dotenv/config";
+import { PERMISSION_KEYS, SYSTEM_ROLES } from "./permissions.js";
 // import jwt from "jsonwebtoken";
 
 // Node's IPv4/IPv6 connection racing can time out against Neon's HTTPS
@@ -53,6 +54,52 @@ async function initDB() {
       FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
       UNIQUE(user_id, user_role)
     )`;
+
+    // Role-based access control: roles are rows, permissions are granted per role.
+    await sql`CREATE TABLE IF NOT EXISTS roles (
+      name VARCHAR(50) PRIMARY KEY,
+      label VARCHAR(100) NOT NULL,
+      description TEXT,
+      is_system BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`;
+    await sql`CREATE TABLE IF NOT EXISTS role_permissions (
+      role_name VARCHAR(50) NOT NULL REFERENCES roles(name) ON DELETE CASCADE ON UPDATE CASCADE,
+      permission VARCHAR(80) NOT NULL,
+      PRIMARY KEY (role_name, permission)
+    )`;
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE`;
+
+    // Seed the built-in roles once. Later edits to their permissions are never overwritten.
+    for (const [name, def] of Object.entries(SYSTEM_ROLES)) {
+      const inserted = await sql`
+        INSERT INTO roles (name, label, description, is_system)
+        VALUES (${name}, ${def.label}, ${def.description}, TRUE)
+        ON CONFLICT (name) DO NOTHING
+        RETURNING name
+      `;
+      if (inserted.length) {
+        for (const permission of def.permissions) {
+          await sql`INSERT INTO role_permissions (role_name, permission) VALUES (${name}, ${permission}) ON CONFLICT DO NOTHING`;
+        }
+      }
+    }
+    // The admin role always owns every permission, including ones added in later releases.
+    for (const permission of PERMISSION_KEYS) {
+      await sql`INSERT INTO role_permissions (role_name, permission) VALUES ('admin', ${permission}) ON CONFLICT DO NOTHING`;
+    }
+
+    // Custom roles need user_roles to accept any role name, constrained by the roles table instead.
+    await sql`ALTER TABLE user_roles DROP CONSTRAINT IF EXISTS user_roles_user_role_check`;
+    await sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'user_roles_role_fk') THEN
+          ALTER TABLE user_roles ADD CONSTRAINT user_roles_role_fk
+            FOREIGN KEY (user_role) REFERENCES roles(name) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END$$;
+    `;
 
     // Create enum type for categories
     await sql`

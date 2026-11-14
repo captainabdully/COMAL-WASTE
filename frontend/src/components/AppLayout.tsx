@@ -8,6 +8,8 @@ import { FinancialOverview } from './FinancialOverview';
 import { ReportsAnalytics } from './ReportsAnalytics';
 import { DailyPrices } from './DailyPrices';
 import { Settings } from './Settings';
+import { UserManagement } from './UserManagement';
+import { RolesMatrix } from './RolesMatrix';
 import { useAuth } from '../contexts/AuthContext';
 import { LanguageToggle } from './LanguageToggle';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -26,8 +28,23 @@ const readSeenEvents = (storageKey: string): SeenEventIds | null => {
 };
 
 const AppLayout: React.FC = () => {
-  const [activeSection, setActiveSection] = useState('dashboard');
-  const { logout, user } = useAuth();
+  const { logout, user, can } = useAuth();
+  const sectionAllowed = (section: string) => {
+    switch (section) {
+      case 'dashboard': case 'fleet': case 'financial': case 'reports': return can('reports.view');
+      case 'vendors': case 'users': return can('users.view') || can('users.manage');
+      case 'pickups': return can('orders.view_all');
+      case 'daily-prices': return can('prices.manage');
+      case 'roles': return can('roles.manage');
+      case 'settings': return can('users.manage') || can('roles.manage');
+      default: return false;
+    }
+  };
+  const [requestedSection, setActiveSection] = useState('dashboard');
+  // Fall back to the first page this user may open (e.g. a custom role without reports access).
+  const activeSection = sectionAllowed(requestedSection)
+    ? requestedSection
+    : ['pickups', 'daily-prices', 'users', 'roles', 'dashboard'].find(sectionAllowed) || requestedSection;
   const { t } = useLanguage();
   const [notificationCounts, setNotificationCounts] = useState<NotificationCounts>({ pickups: 0, vendors: 0 });
   const seenEventsRef = useRef<SeenEventIds | null>(null);
@@ -40,9 +57,10 @@ const AppLayout: React.FC = () => {
 
   const refreshNotifications = useCallback(async () => {
     try {
+      // Each list needs its own permission; a user without one simply gets no badge for it.
       const [pickupResponse, usersResponse] = await Promise.all([
-        api.get('/pickup-order'),
-        api.get('/users'),
+        can('orders.view_all') ? api.get('/pickup-order') : Promise.resolve({ data: { data: [] } }),
+        can('users.view') || can('users.manage') ? api.get('/users') : Promise.resolve({ data: { users: [] } }),
       ]);
       const pickupIds = (pickupResponse.data.data || []).map((order: { id: string | number }) => String(order.id));
       const vendorIds = (usersResponse.data.users || [])
@@ -69,7 +87,7 @@ const AppLayout: React.FC = () => {
       // Dashboard content already provides its own error handling; a transient polling failure should stay silent.
       console.error('Could not refresh menu notifications:', error);
     }
-  }, [saveSeenEvents, storageKey]);
+  }, [saveSeenEvents, storageKey, can]);
 
   useEffect(() => {
     seenEventsRef.current = null;
@@ -100,6 +118,9 @@ const AppLayout: React.FC = () => {
   };
 
   const renderContent = () => {
+    if (!sectionAllowed(activeSection)) {
+      return <div className="bg-white rounded-lg shadow p-8 text-center text-gray-600">You do not have access to any page in this portal. Ask an administrator to update your role.</div>;
+    }
     switch (activeSection) {
       case 'dashboard':
         return <DashboardOverview />;
@@ -115,6 +136,10 @@ const AppLayout: React.FC = () => {
         return <ReportsAnalytics />;
       case 'daily-prices':
         return <DailyPrices />;
+      case 'users':
+        return <UserManagement />;
+      case 'roles':
+        return <RolesMatrix />;
       case 'settings':
         return <Settings />;
       default:
@@ -129,7 +154,7 @@ const AppLayout: React.FC = () => {
         <header className="bg-white shadow-sm sticky top-0 z-10">
           <div className="px-8 py-4 flex justify-between items-center">
             <h2 className="text-xl font-bold text-gray-800">
-              {t(activeSection === 'daily-prices' ? 'dailyPrices' : activeSection === 'pickups' ? 'pickupRequests' : activeSection === 'fleet' ? 'fleetManagement' : activeSection === 'settings' ? 'adminPanel' : activeSection as 'dashboard' | 'vendors' | 'financial' | 'reports')}
+              {t(activeSection === 'daily-prices' ? 'dailyPrices' : activeSection === 'pickups' ? 'pickupRequests' : activeSection === 'fleet' ? 'fleetManagement' : activeSection === 'settings' ? 'adminPanel' : activeSection === 'roles' ? 'rolesPermissions' : activeSection as 'dashboard' | 'vendors' | 'financial' | 'reports' | 'users')}
             </h2>
             <div className="flex items-center gap-4">
               <button className="relative p-2 text-gray-600 hover:text-gray-900" aria-label="Menu notifications">

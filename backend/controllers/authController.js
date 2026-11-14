@@ -4,6 +4,7 @@ import { sql } from "../config/db.js";
 import { sendPasswordResetEmail } from "../config/email.js";
 import dotenv from "dotenv";
 import { JWT_EXPIRES_IN, JWT_REFRESH_EXPIRES_IN } from "../config/jwt.js";
+import { getUserAccess } from "../middleware/permissionMiddleware.js";
 
 dotenv.config(); // load environment variables
 
@@ -36,6 +37,10 @@ export const login = async (req, res) => {
 
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    if (user.is_active === false) {
+      return res.status(403).json({ message: "This account has been deactivated. Contact an administrator." });
     }
 
     // Fetch assigned roles
@@ -83,7 +88,8 @@ export const login = async (req, res) => {
         name: user.name,
         email: user.email,
         phone_number: user.phone_number,
-        roles: userRoles
+        roles: userRoles,
+        permissions: [...(await getUserAccess(user.user_id)).permissions]
       }
     });
 
@@ -116,8 +122,8 @@ export const refreshToken = async (req, res) => {
     }
 
     // Re-read the user so deleted accounts are refused and role changes take effect.
-    const rows = await sql`SELECT user_id, email FROM users WHERE user_id = ${decoded.user_id} LIMIT 1`;
-    if (rows.length === 0) {
+    const rows = await sql`SELECT user_id, email, is_active FROM users WHERE user_id = ${decoded.user_id} LIMIT 1`;
+    if (rows.length === 0 || rows[0].is_active === false) {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
     const roleRows = await sql`SELECT user_role FROM user_roles WHERE user_id = ${decoded.user_id}`;
@@ -142,8 +148,7 @@ export const changePassword = async (req, res) => {
     const { user_id } = req.params;
     const { currentPassword, newPassword } = req.body;
 
-    const isPrivileged = req.user.roles?.some((role) => ["admin", "manager"].includes(role));
-    if (!isPrivileged && req.user.user_id !== user_id) {
+    if (!req.permissions?.has("users.manage") && req.user.user_id !== user_id) {
       return res.status(403).json({ message: "Forbidden: you can only change your own password" });
     }
 
@@ -294,4 +299,16 @@ export default {
   forgotPassword,
   resetPassword,
   testEmail
+};
+
+// Current user's roles and permissions, read live so the admin portal can refresh a stale session.
+export const me = async (req, res) => {
+  try {
+    const access = await getUserAccess(req.user.user_id);
+    if (!access.active) return res.status(403).json({ message: "Account is inactive" });
+    res.status(200).json({ roles: access.roles, permissions: [...access.permissions] });
+  } catch (error) {
+    console.error("Me error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };

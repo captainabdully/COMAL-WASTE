@@ -47,7 +47,7 @@ class OrderController {
     try {
       const { vendor_id } = req.params;
 
-      const isPrivileged = req.user.roles?.some((role) => ["admin", "manager"].includes(role));
+      const isPrivileged = req.permissions.has("orders.view_all");
       if (!isPrivileged && req.user.user_id !== vendor_id) {
         return res.status(403).json({ message: "Forbidden: you can only view your own orders" });
       }
@@ -88,7 +88,7 @@ class OrderController {
         return res.status(404).json({ message: "Pickup order not found" });
       }
 
-      const isPrivileged = req.user.roles?.some((role) => ["admin", "manager"].includes(role));
+      const isPrivileged = req.permissions.has("orders.view_all");
       if (!isPrivileged && order.vendor_id !== req.user.user_id) {
         return res.status(403).json({ message: "Forbidden: you can only view your own orders" });
       }

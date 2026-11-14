@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useState, useEffect } from 'react';
+import { api } from '../lib/api';
 
 interface AuthContextType {
     token: string | null;
@@ -6,6 +7,7 @@ interface AuthContextType {
     logout: () => void;
     user: any | null;
     isAuthenticated: boolean;
+    can: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -14,6 +16,7 @@ const AuthContext = createContext<AuthContextType>({
     logout: () => { },
     user: null,
     isAuthenticated: false,
+    can: () => false,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -22,9 +25,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [token, setToken] = useState<string | null>(localStorage.getItem('authToken'));
     const [user, setUser] = useState<any | null>(JSON.parse(localStorage.getItem('user') || 'null'));
 
+    // Sessions created before permissions existed (or after a role edit) have stale data: refresh it from the server.
     useEffect(() => {
-        // Optional: Validate token validity here
-    }, []);
+        if (!token) return;
+        api.get('/auth/me')
+            .then((res) => {
+                setUser((prev: any) => {
+                    const next = { ...(prev || {}), roles: res.data.roles, permissions: res.data.permissions };
+                    localStorage.setItem('user', JSON.stringify(next));
+                    return next;
+                });
+            })
+            .catch(() => { /* 401 is handled by the api interceptor */ });
+    }, [token]);
+
+    const can = useCallback((permission: string) => {
+        if (Array.isArray(user?.permissions)) return user.permissions.includes(permission);
+        // Old session, /auth/me not answered yet: admins keep working instead of seeing an empty menu.
+        return !!user?.roles?.includes('admin');
+    }, [user]);
 
     const login = (newToken: string, newUser: any) => {
         localStorage.setItem('authToken', newToken);
@@ -41,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ token, login, logout, user, isAuthenticated: !!token }}>
+        <AuthContext.Provider value={{ token, login, logout, user, isAuthenticated: !!token, can }}>
             {children}
         </AuthContext.Provider>
     );

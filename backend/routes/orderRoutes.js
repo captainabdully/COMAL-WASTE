@@ -1,19 +1,19 @@
 import express from 'express';
 import orderController from '../controllers/orderController.js';
 import { authMiddleware } from "../middleware/authMiddleware.js";
-import { allowRoles } from "../middleware/roleMiddleware.js";
+import { requirePermission } from "../middleware/permissionMiddleware.js";
 
 const router = express.Router();
 
-router.post('/', authMiddleware, allowRoles("vendor"), orderController.createPickupOrder);
-router.get('/', authMiddleware, allowRoles("admin", "manager"), orderController.getAllOrders);
+router.post('/', authMiddleware, requirePermission("orders.create"), orderController.createPickupOrder);
+router.get('/', authMiddleware, requirePermission("orders.view_all"), orderController.getAllOrders);
 // Static paths must be registered before '/:vendor_id' or they are swallowed by it.
-router.get('/history/', authMiddleware, allowRoles("admin", "manager"), orderController.getOrderHistory);
-router.get('/:vendor_id', authMiddleware, allowRoles("admin", "manager", "vendor"), orderController.getVendorOrders);
-router.put('/:id/status', authMiddleware, allowRoles("admin", "manager"), orderController.updateOrderStatus);
-router.post('/:id/cancel', authMiddleware, allowRoles("vendor"), orderController.cancelOwnOrder);
-router.post('/completion', authMiddleware, allowRoles("admin", "manager"), orderController.recordOrderCompletion);
-router.get('/order/:id', authMiddleware, allowRoles("admin", "manager", "vendor"), orderController.getOrderById);
+router.get('/history/', authMiddleware, requirePermission("orders.view_all"), orderController.getOrderHistory);
+router.get('/:vendor_id', authMiddleware, requirePermission("orders.view_own", "orders.view_all"), orderController.getVendorOrders);
+router.put('/:id/status', authMiddleware, requirePermission("orders.manage"), orderController.updateOrderStatus);
+router.post('/:id/cancel', authMiddleware, requirePermission("orders.cancel_own"), orderController.cancelOwnOrder);
+router.post('/completion', authMiddleware, requirePermission("orders.manage"), orderController.recordOrderCompletion);
+router.get('/order/:id', authMiddleware, requirePermission("orders.view_own", "orders.view_all"), orderController.getOrderById);
 
 export default router;
 

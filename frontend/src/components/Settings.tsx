@@ -10,7 +10,7 @@ export const Settings: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md">
         <div className="border-b">
           <div className="flex">
-            {['general', 'pricing', 'tax', 'users'].map(tab => (
+            {['general', 'pricing', 'tax'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -71,19 +71,6 @@ export const Settings: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'users' && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold mb-4">User Roles & Permissions</h3>
-              <div className="space-y-2">
-                {['Admin', 'Operations Manager', 'Field Supervisor', 'Dispatching Officer', 'Accounts Manager'].map(role => (
-                  <div key={role} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="font-medium">{role}</span>
-                    <button className="text-blue-600 hover:text-blue-800 text-sm">Configure</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="mt-6 pt-6 border-t">
             <button className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">

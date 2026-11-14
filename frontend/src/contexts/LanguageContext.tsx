@@ -6,7 +6,7 @@ const translations = {
   en: {
     language: 'Language', english: 'English', swahili: 'Swahili',
     welcomeBack: 'Welcome Back', signInPrompt: 'Sign in to your account', emailAddress: 'Email Address', password: 'Password', signIn: 'Sign In', signingIn: 'Signing in...',
-    dashboard: 'Dashboard', vendors: 'Vendors', pickupRequests: 'Pickup Requests', dailyPrices: 'Daily Prices', fleetManagement: 'Fleet Management', financial: 'Financial', reports: 'Reports', adminPanel: 'Admin Panel', logout: 'Logout',
+    dashboard: 'Dashboard', vendors: 'Vendors', pickupRequests: 'Pickup Requests', dailyPrices: 'Daily Prices', fleetManagement: 'Fleet Management', financial: 'Financial', reports: 'Reports', adminPanel: 'Admin Panel', users: 'Users', rolesPermissions: 'Roles & Permissions', logout: 'Logout',
     platform: 'COMAL Platform', platformSubtitle: 'Smart Scrap Material Management System',
     completedScrap: 'Completed Scrap', completedOrders: 'Completed orders', cancelledOrders: 'Cancelled Orders', allTime: 'All time', pendingOrders: 'Pending Orders', awaitingAssignment: 'Awaiting assignment',
     requestsThisMonth: 'Requests This Month', createdThisMonth: 'Created this month', activeVendors: 'Active Vendors', registeredVendorAccounts: 'Registered vendor accounts', pendingPayment: 'Pending Payment', assignedOrders: 'Assigned orders', completedJobsThisMonth: 'Completed Jobs This Month', completedThisMonth: 'Completed this month',
@@ -17,7 +17,7 @@ const translations = {
   sw: {
     language: 'Lugha', english: 'Kiingereza', swahili: 'Kiswahili',
     welcomeBack: 'Karibu Tena', signInPrompt: 'Ingia kwenye akaunti yako', emailAddress: 'Barua pepe', password: 'Nenosiri', signIn: 'Ingia', signingIn: 'Inaingia...',
-    dashboard: 'Dashibodi', vendors: 'Wauzaji', pickupRequests: 'Maombi ya Ukusanyaji', dailyPrices: 'Bei za Kila Siku', fleetManagement: 'Usimamizi wa Magari', financial: 'Fedha', reports: 'Ripoti', adminPanel: 'Jopo la Msimamizi', logout: 'Toka',
+    dashboard: 'Dashibodi', vendors: 'Wauzaji', pickupRequests: 'Maombi ya Ukusanyaji', dailyPrices: 'Bei za Kila Siku', fleetManagement: 'Usimamizi wa Magari', financial: 'Fedha', reports: 'Ripoti', adminPanel: 'Jopo la Msimamizi', users: 'Watumiaji', rolesPermissions: 'Majukumu na Ruhusa', logout: 'Toka',
     platform: 'Jukwaa la COMAL', platformSubtitle: 'Mfumo Mahiri wa Usimamizi wa Vifaa Chakavu',
     completedScrap: 'Chuma Chakavu Kilichokamilika', completedOrders: 'Maombi yaliyokamilika', cancelledOrders: 'Maombi Yaliyoghairiwa', allTime: 'Muda wote', pendingOrders: 'Maombi Yanayosubiri', awaitingAssignment: 'Yanasubiri kupangiwa',
     requestsThisMonth: 'Maombi ya Mwezi Huu', createdThisMonth: 'Yaliyoanzishwa mwezi huu', activeVendors: 'Wauzaji Hai', registeredVendorAccounts: 'Akaunti za wauzaji waliosajiliwa', pendingPayment: 'Malipo Yanayosubiri', assignedOrders: 'Maombi yaliyopangiwa', completedJobsThisMonth: 'Kazi Zilizokamilika Mwezi Huu', completedThisMonth: 'Zilizokamilika mwezi huu',

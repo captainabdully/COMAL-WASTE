@@ -11,6 +11,7 @@ import roleRoutes from './routes/roleRoutes.js';
 import droppingPointRoutes from './routes/droppingPointRoutes.js';
 import priceRoutes from './routes/priceRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import rbacRoutes from './routes/rbacRoutes.js';
 import authRoutes from "./routes/authRoutes.js";
 import setupRoutes from "./routes/setupRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
@@ -47,6 +48,7 @@ app.use(express.json({ limit: '1mb' }));
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/user-roles', roleRoutes);
+app.use('/api/roles', rbacRoutes);
 app.use('/api/dropping-point', droppingPointRoutes);
 app.use('/api/daily-price', priceRoutes);
 app.use('/api/pickup-order', orderRoutes);

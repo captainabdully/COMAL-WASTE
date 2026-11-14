@@ -29,9 +29,8 @@ const Login = () => {
 
             if (res.data.token) {
                 // Check for admin or manager role
-                const userRoles = res.data.user.roles || [];
-                if (!userRoles.includes('admin') && !userRoles.includes('manager')) {
-                    const message = "Access denied: This portal is for Admins and Managers only.";
+                if (!(res.data.user.permissions || []).includes('portal.access')) {
+                    const message = "Access denied: your account does not have access to the admin portal.";
                     setError(message);
                     await showError('Access denied', new Error(message));
                     return;

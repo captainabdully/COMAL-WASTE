@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useIsMobile } from '../hooks/use-mobile';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface SidebarProps {
   activeSection: string;
@@ -11,21 +12,24 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange, notificationCounts }) => {
   const isMobile = useIsMobile();
   const { t } = useLanguage();
+  const { can, user } = useAuth();
   const [minimized, setMinimized] = useState(isMobile);
   React.useEffect(() => {
     setMinimized(isMobile);
   }, [isMobile]);
 
   const menuItems = [
-    { id: 'dashboard', label: t('dashboard'), icon: '📊', notifications: 0 },
-    { id: 'vendors', label: t('vendors'), icon: '🏢', notifications: notificationCounts.vendors },
-    { id: 'pickups', label: t('pickupRequests'), icon: '📦', notifications: notificationCounts.pickups },
-    { id: 'daily-prices', label: t('dailyPrices'), icon: '🏷️', notifications: 0 },
-    { id: 'fleet', label: t('fleetManagement'), icon: '🚚', notifications: 0 },
-    { id: 'financial', label: t('financial'), icon: '💰', notifications: 0 },
-    { id: 'reports', label: t('reports'), icon: '📈', notifications: 0 },
-    { id: 'settings', label: t('adminPanel'), icon: '⚙️', notifications: 0 }
-  ];
+    { id: 'dashboard', label: t('dashboard'), icon: '📊', notifications: 0, allowed: can('reports.view') },
+    { id: 'vendors', label: t('vendors'), icon: '🏢', notifications: notificationCounts.vendors, allowed: can('users.view') || can('users.manage') },
+    { id: 'pickups', label: t('pickupRequests'), icon: '📦', notifications: notificationCounts.pickups, allowed: can('orders.view_all') },
+    { id: 'daily-prices', label: t('dailyPrices'), icon: '🏷️', notifications: 0, allowed: can('prices.manage') },
+    { id: 'fleet', label: t('fleetManagement'), icon: '🚚', notifications: 0, allowed: can('reports.view') },
+    { id: 'financial', label: t('financial'), icon: '💰', notifications: 0, allowed: can('reports.view') },
+    { id: 'reports', label: t('reports'), icon: '📈', notifications: 0, allowed: can('reports.view') },
+    { id: 'users', label: t('users'), icon: '👥', notifications: 0, allowed: can('users.view') || can('users.manage') },
+    { id: 'roles', label: t('rolesPermissions'), icon: '🔐', notifications: 0, allowed: can('roles.manage') },
+    { id: 'settings', label: t('adminPanel'), icon: '⚙️', notifications: 0, allowed: can('users.manage') || can('roles.manage') }
+  ].filter(item => item.allowed);
 
   return (
     <div
@@ -80,8 +84,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange
           </div>
           {!minimized && (
             <div>
-              <p className="font-medium">Admin User</p>
-              <p className="text-xs text-gray-400">admin@system.com</p>
+              <p className="font-medium truncate max-w-[10rem]">{user?.name || 'User'}</p>
+              <p className="text-xs text-gray-400 truncate max-w-[10rem]">{user?.email || ''}</p>
             </div>
           )}
         </div>

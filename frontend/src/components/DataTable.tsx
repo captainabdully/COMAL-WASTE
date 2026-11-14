@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface Column {
@@ -19,6 +19,8 @@ export const DataTable: React.FC<DataTableProps> = ({ columns, data, onRowClick,
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, data.length]);
 
   const filteredData = data.filter(row =>
     Object.values(row).some(val =>
@@ -77,19 +79,19 @@ export const DataTable: React.FC<DataTableProps> = ({ columns, data, onRowClick,
       </div>
       <div className="px-4 py-3 border-t flex items-center justify-between">
         <div className="text-sm text-gray-700">
-          {t('showing')} {startIdx + 1} {t('of')} {Math.min(startIdx + itemsPerPage, filteredData.length)} / {filteredData.length}
+          {t('showing')} {filteredData.length ? startIdx + 1 : 0} {t('of')} {Math.min(startIdx + itemsPerPage, filteredData.length)} / {filteredData.length}
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
+            disabled={currentPage <= 1}
             className="px-3 py-1 border rounded disabled:opacity-50"
           >
             {t('previous')}
           </button>
           <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => Math.max(1, Math.min(totalPages, p + 1)))}
+            disabled={currentPage >= totalPages}
             className="px-3 py-1 border rounded disabled:opacity-50"
           >
             {t('next')}

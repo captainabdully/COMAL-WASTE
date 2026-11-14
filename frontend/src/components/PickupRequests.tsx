@@ -33,11 +33,22 @@ export const PickupRequests: React.FC = () => {
         vendor: order.vendor_name || 'Unknown Vendor',
         material: order.category ? (order.category.charAt(0).toUpperCase() + order.category.slice(1)) : 'N/A',
         quantity: `${formatQuantity(order.quantity)} ${order.quantity_unit === 'tonne' ? 'tonne' : 'kg'}`,
+        location: order.location_name || '—',
+        phone: order.phone_number || '—',
+        total: `TZS ${Number(order.price).toLocaleString()}`,
+        manager: order.assigned_manager_name || '—',
         date: new Date(order.created_at).toLocaleDateString(),
+        createdAt: new Date(order.created_at).getTime(),
         status: order.status,
         originalData: order // Keep original data if needed
       }));
 
+      // Pending first (oldest first, so the longest-waiting is on top), then the rest newest first.
+      formattedRequests.sort((a: any, b: any) => {
+        const ap = a.status === 'pending', bp = b.status === 'pending';
+        if (ap !== bp) return ap ? -1 : 1;
+        return ap ? a.createdAt - b.createdAt : b.createdAt - a.createdAt;
+      });
       setRequests(formattedRequests);
     } catch (error) {
       console.error("Error fetching requests:", error);
@@ -141,6 +152,10 @@ export const PickupRequests: React.FC = () => {
     { key: 'vendor', label: 'Vendor' },
     { key: 'material', label: 'Material' },
     { key: 'quantity', label: 'Quantity' },
+    { key: 'total', label: 'Est. total' },
+    { key: 'location', label: 'Dropping point' },
+    { key: 'phone', label: 'Phone' },
+    { key: 'manager', label: 'Assigned to' },
     { key: 'date', label: 'Date' },
     {
       key: 'status',
@@ -150,6 +165,12 @@ export const PickupRequests: React.FC = () => {
   ];
 
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('pending');
+
+  const STATUS_FILTERS = ['all', 'pending', 'assigned', 'completed', 'cancelled'];
+  const counts: Record<string, number> = { all: requests.length };
+  STATUS_FILTERS.slice(1).forEach(s => { counts[s] = requests.filter(r => r.status === s).length; });
+  const visibleRequests = statusFilter === 'all' ? requests : requests.filter(r => r.status === statusFilter);
 
   const handleView = (request: any) => {
     setSelectedRequest(request.originalData);
@@ -164,9 +185,21 @@ export const PickupRequests: React.FC = () => {
       {loading ? (
         <div className="text-center py-4">Loading pickup requests...</div>
       ) : (
+        <>
+        <div className="flex flex-wrap gap-2">
+          {STATUS_FILTERS.map(s => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize transition ${statusFilter === s ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border hover:bg-gray-50'}`}
+            >
+              {s} <span className="opacity-60">{counts[s]}</span>
+            </button>
+          ))}
+        </div>
         <DataTable
           columns={columns}
-          data={requests}
+          data={visibleRequests}
           onRowClick={(row) => handleView(row)} // Allow row click to view
           actions={(row) => (
             <div className="flex gap-2">
@@ -194,6 +227,7 @@ export const PickupRequests: React.FC = () => {
             </div>
           )}
         />
+        </>
       )}
 
       {selectedRequest && (

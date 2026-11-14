@@ -99,6 +99,7 @@ class OrderService {
         po.*, 
         dp.location_name,
         v.name as vendor_name,
+        v.email as vendor_email,
         m.name as assigned_manager_name
       FROM pickup_order po
       LEFT JOIN dropping_point dp ON po.dropping_point_id = dp.id

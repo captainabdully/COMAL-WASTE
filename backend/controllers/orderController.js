@@ -1,4 +1,5 @@
 import orderService from '../services/orderService.js';
+import { sendOrderStatusEmail } from '../config/email.js';
 
 class OrderController {
   async createPickupOrder(req, res) {
@@ -136,6 +137,9 @@ class OrderController {
         message: "Pickup order updated successfully",
         data: updated
       });
+
+      // Fire-and-forget after responding; vendor_email is only used server-side.
+      orderService.getOrderById(id).then((full) => full && sendOrderStatusEmail(full)).catch(() => {});
     } catch (error) {
       console.error("Error updating pickup order:", error);
       res.status(500).json({ message: "Internal server error" });

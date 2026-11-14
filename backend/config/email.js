@@ -119,3 +119,40 @@ export const sendConfirmationEmail = async (email, name) => {
     return false;
   }
 };
+
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+const STATUS_COPY = {
+  assigned: { subject: 'Your pickup request was approved', line: 'Good news - your pickup request has been approved and a team will collect it.' },
+  completed: { subject: 'Your pickup request is completed', line: 'Your pickup request has been completed. Thank you for working with us.' },
+  cancelled: { subject: 'Your pickup request was rejected', line: 'Unfortunately your pickup request could not be accepted.' },
+};
+
+// Tell a vendor their request changed status. Never throws: a mail failure must not fail the order update.
+export const sendOrderStatusEmail = async (order) => {
+  try {
+    const copy = STATUS_COPY[order.status];
+    if (!copy || !order.vendor_email || !process.env.MAIL_USERNAME || !process.env.MAIL_PASSWORD) return false;
+    const reason = order.status === 'cancelled' && order.rejection_comment
+      ? `<p><strong>Reason:</strong> ${esc(order.rejection_comment)}</p>` : '';
+    await createTransporter().sendMail({
+      from: process.env.MAIL_USERNAME,
+      to: order.vendor_email,
+      subject: `${copy.subject} - COMAL WASTE`,
+      html: `
+        <h2>${esc(copy.subject)}</h2>
+        <p>Hi ${esc(order.vendor_name || 'there')},</p>
+        <p>${esc(copy.line)}</p>
+        <p><strong>Order:</strong> #${esc(order.order_id ?? order.id)}<br />
+           <strong>Category:</strong> ${esc(order.category)}<br />
+           <strong>Quantity:</strong> ${esc(order.quantity)} ${esc(order.quantity_unit || 'kg')}<br />
+           <strong>Dropping point:</strong> ${esc(order.location_name)}</p>
+        ${reason}
+        <hr /><p><small>COMAL WASTE Management System</small></p>`,
+    });
+    return true;
+  } catch (error) {
+    console.error('Error sending order status email:', error.message);
+    return false;
+  }
+};

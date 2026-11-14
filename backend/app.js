@@ -17,6 +17,7 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { apiLimiter } from './middleware/rateLimiter.js';
+import { startCancelledOrderCleanup } from './jobs/cleanupCancelledOrders.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -79,6 +80,7 @@ app.use((err, _req, res, _next) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log("my port:", process.env.PORT || 5001);
+  startCancelledOrderCleanup();
 });
 
 export default app;

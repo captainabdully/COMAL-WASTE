@@ -19,7 +19,6 @@ class PriceService {
         SELECT DISTINCT ON (category) dp.*
         FROM daily_price dp
         WHERE dp.dropping_point_id = ${dropping_point_id}
-          AND dp.effective_date >= CURRENT_DATE - INTERVAL '7 days'
         ORDER BY dp.category, dp.effective_date DESC, dp.created_at DESC
       )
       SELECT 
@@ -44,7 +43,6 @@ class PriceService {
       WITH latest_prices AS (
         SELECT DISTINCT ON (dropping_point_id, category) dp.*
         FROM daily_price dp
-        WHERE dp.effective_date >= CURRENT_DATE - INTERVAL '7 days'
         ORDER BY dp.dropping_point_id, dp.category, dp.effective_date DESC, dp.created_at DESC
       )
       SELECT lp.*, dpp.location_name, u.name as created_by_name

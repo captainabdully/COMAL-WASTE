@@ -19,7 +19,6 @@ class OrderService {
       FROM daily_price
       WHERE dropping_point_id = ${droppingPointId}
         AND category = ${category}
-        AND effective_date >= CURRENT_DATE - INTERVAL '7 days'
       ORDER BY effective_date DESC, created_at DESC
       LIMIT 1
     `;
